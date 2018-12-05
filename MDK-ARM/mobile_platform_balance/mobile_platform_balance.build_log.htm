@@ -1,0 +1,66 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: ¦ÌVision V5.24.2.0
+Copyright (C) 2017 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: hu liwei, cs, LIC=UB4CX-HPYTU-F03N5-G7RUN-9IMFW-C952Q
+ 
+Tool Versions:
+Toolchain:       MDK-ARM Professional  Version: 5.24.1
+Toolchain Path:  C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin
+C Compiler:      Armcc.exe V5.06 update 5 (build 528)
+Assembler:       Armasm.exe V5.06 update 5 (build 528)
+Linker/Locator:  ArmLink.exe V5.06 update 5 (build 528)
+Library Manager: ArmAr.exe V5.06 update 5 (build 528)
+Hex Converter:   FromElf.exe V5.06 update 5 (build 528)
+CPU DLL:         SARMCM3.DLL V5.24.1
+Dialog DLL:      DCM.DLL V1.16.0.0
+Target DLL:      Segger\JL2CM3.dll V2.99.26.0
+Dialog DLL:      TCM.DLL V1.32.0.0
+ 
+<h2>Project:</h2>
+E:\project\mobile_platform_balance\MDK-ARM\mobile_platform_balance.uvprojx
+Project File Date:  12/05/2018
+
+<h2>Output:</h2>
+*** Using Compiler 'V5.06 update 5 (build 528)', folder: 'C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin'
+Build target 'mobile_platform_balance'
+compiling ctrl_task.c...
+1_task\ctrl_task.c(170): warning:  #177-D: function "GetSector"  was declared but never referenced
+  static uint32_t GetSector(uint32_t Address)
+1_task\ctrl_task.c(214): warning:  #177-D: function "GetSectorSize"  was declared but never referenced
+  static uint32_t GetSectorSize(uint32_t Sector)
+1_task\ctrl_task.c(106): warning:  #177-D: variable "EraseInitStruct"  was declared but never referenced
+  static FLASH_EraseInitTypeDef EraseInitStruct;
+linking...
+Program Size: Code=28916 RO-data=4060 RW-data=224 ZI-data=24696  
+FromELF: creating hex file...
+"mobile_platform_balance\mobile_platform_balance.axf" - 0 Error(s), 3 Warning(s).
+
+<h2>Software Packages used:</h2>
+
+Package Vendor: ARM
+                http://www.keil.com/pack/ARM.CMSIS.5.0.1.pack
+                ARM.CMSIS.5.0.1
+                CMSIS (Cortex Microcontroller Software Interface Standard)
+   * Component: CORE Version: 5.0.1
+
+Package Vendor: Keil
+                http://www.keil.com/pack/Keil.STM32F4xx_DFP.2.11.0.pack
+                Keil.STM32F4xx_DFP.2.11.0
+                STMicroelectronics STM32F4 Series Device Support, Drivers and Examples
+
+<h2>Collection of Component include folders:</h2>
+  .\RTE\_mobile_platform_balance
+  C:\0_Softwares\0_KEIL\ARM\PACK\ARM\CMSIS\5.0.1\CMSIS\Include
+  C:\0_Softwares\0_KEIL\ARM\PACK\Keil\STM32F4xx_DFP\2.11.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include
+
+<h2>Collection of Component Files used:</h2>
+
+   * Component: ARM::CMSIS:CORE:5.0.1
+Build Time Elapsed:  00:00:03
+</pre>
+</body>
+</html>
