@@ -71,13 +71,18 @@ void balance_pid_calc(float angle_pitch, float gyro_pitch);
 #define WK_UP 	HAL_GPIO_ReadPin(KEY_WK_UP_GPIO_Port,KEY_WK_UP_Pin)	//PA0
 
 #define KEY0_PRES 	1
-#define KEY1_PRES	  2
-#define KEY2_PRES	  3
+#define KEY1_PRES   2
+#define KEY2_PRES	3
 #define WKUP_PRES   4
 void start_key_scan_task(void const * argument);
 uint8_t key_scan(uint8_t mode);
 static uint32_t GetSector(uint32_t Address);
 static uint32_t GetSectorSize(uint32_t Sector);
 
+/**********************************************lcd part*************************************************/
+#define LCD_SCAN_TASK_PERIOD (10)
+void start_lcd_scan_task(void const * argument);
+void float_to_str(char *str,double num);
+void uart_send_senser(void);
 #endif
 

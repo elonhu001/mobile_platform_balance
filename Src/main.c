@@ -55,9 +55,10 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
+#include "fsmc.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "sys_config.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -113,8 +114,10 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM13_Init();
   MX_CAN2_Init();
+//  MX_FSMC_Init();
   /* USER CODE BEGIN 2 */
 	can_filter_init(&hcan2);
+	dbus_uart_init();
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */

@@ -336,7 +336,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F407xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;../Drivers/CMSIS/Include;.\0_bsp;.\0_bsp\IIC;.\0_bsp\MPU6050;.\0_bsp\MPU6050\eMPL;.\1_task;.\0_bsp\sys;.\0_bsp\can;.\2_lib</IncludePath>
+              <IncludePath>../Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;../Drivers/CMSIS/Include;.\0_bsp;.\0_bsp\IIC;.\0_bsp\MPU6050;.\0_bsp\MPU6050\eMPL;.\1_task;.\0_bsp\sys;.\0_bsp\can;.\2_lib;.\0_bsp\lcd;.\0_bsp\malloc;.\0_bsp\ramp;.\0_bsp\uart</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -425,6 +425,26 @@
               <FileType>1</FileType>
               <FilePath>.\0_bsp\can\bsp_can.c</FilePath>
             </File>
+            <File>
+              <FileName>ili93xx.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\0_bsp\lcd\ili93xx.c</FilePath>
+            </File>
+            <File>
+              <FileName>malloc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\0_bsp\malloc\malloc.c</FilePath>
+            </File>
+            <File>
+              <FileName>ramp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\0_bsp\ramp\ramp.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\0_bsp\uart\bsp_uart.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -466,6 +486,11 @@
               <FilePath>../Src/freertos.c</FilePath>
             </File>
             <File>
+              <FileName>fsmc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Src/fsmc.c</FilePath>
+            </File>
+            <File>
               <FileName>tim.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Src/tim.c</FilePath>
@@ -494,6 +519,16 @@
               <FileName>stm32f4xx_hal_can.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_can.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f4xx_ll_fsmc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_fsmc.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f4xx_hal_sram.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_sram.c</FilePath>
             </File>
             <File>
               <FileName>stm32f4xx_hal_tim.c</FileName>

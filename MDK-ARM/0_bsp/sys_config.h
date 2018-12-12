@@ -20,13 +20,19 @@
 #include "ctrl_task.h"
 /*bsp*/
 #include "bsp_can.h"
+#include "bsp_uart.h"
 /*lib*/
 #include "pid.h"
+#include "ramp.h"
+/*lcd*/
+#include "ili93xx.h"
+#include "malloc.h"
 
 
 typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
+
 
 /*choose the type of chassis, only can choose one*/
 #define TWO_WHEELS_ON  1

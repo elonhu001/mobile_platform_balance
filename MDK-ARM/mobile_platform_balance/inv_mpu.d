@@ -16,6 +16,7 @@ mobile_platform_balance\inv_mpu.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/
 mobile_platform_balance\inv_mpu.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h
 mobile_platform_balance\inv_mpu.o: ../Inc/stm32f4xx_hal_conf.h
 mobile_platform_balance\inv_mpu.o: ../Inc/main.h
+mobile_platform_balance\inv_mpu.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h
 mobile_platform_balance\inv_mpu.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h
 mobile_platform_balance\inv_mpu.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h
 mobile_platform_balance\inv_mpu.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h
@@ -30,6 +31,8 @@ mobile_platform_balance\inv_mpu.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx
 mobile_platform_balance\inv_mpu.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash.h
 mobile_platform_balance\inv_mpu.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ex.h
 mobile_platform_balance\inv_mpu.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ramfunc.h
+mobile_platform_balance\inv_mpu.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_sram.h
+mobile_platform_balance\inv_mpu.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_fsmc.h
 mobile_platform_balance\inv_mpu.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h
 mobile_platform_balance\inv_mpu.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h
 mobile_platform_balance\inv_mpu.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h
@@ -60,4 +63,9 @@ mobile_platform_balance\inv_mpu.o: .\0_bsp\MPU6050\eMPL\dmpmap.h
 mobile_platform_balance\inv_mpu.o: .\0_bsp\sys\sys.h
 mobile_platform_balance\inv_mpu.o: .\1_task\ctrl_task.h
 mobile_platform_balance\inv_mpu.o: .\0_bsp\can\bsp_can.h
+mobile_platform_balance\inv_mpu.o: .\0_bsp\uart\bsp_uart.h
+mobile_platform_balance\inv_mpu.o: ../Inc/usart.h
 mobile_platform_balance\inv_mpu.o: .\2_lib\pid.h
+mobile_platform_balance\inv_mpu.o: .\0_bsp\ramp\ramp.h
+mobile_platform_balance\inv_mpu.o: .\0_bsp\lcd\ili93xx.h
+mobile_platform_balance\inv_mpu.o: .\0_bsp\malloc\malloc.h

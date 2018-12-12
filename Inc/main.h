@@ -52,6 +52,7 @@
 #define __MAIN_H__
 
 /* Includes ------------------------------------------------------------------*/
+#include "stm32f4xx_hal.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -75,6 +76,8 @@
 #define MPU6050_INT_GPIO_Port GPIOC
 #define KEY_WK_UP_Pin GPIO_PIN_0
 #define KEY_WK_UP_GPIO_Port GPIOA
+#define LCD_BL_Pin GPIO_PIN_15
+#define LCD_BL_GPIO_Port GPIOB
 #define IIC_SCL_Pin GPIO_PIN_8
 #define IIC_SCL_GPIO_Port GPIOB
 #define IIC_SDA_Pin GPIO_PIN_9

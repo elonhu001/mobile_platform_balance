@@ -2886,15 +2886,21 @@ u8 run_self_test(void)
 		float sens;
 		unsigned short accel_sens;
 		mpu_get_gyro_sens(&sens);
+//		gyro[0] = (long)(GX_OFFSET * sens);
+//		gyro[1] = (long)(GY_OFFSET * sens);
+//		gyro[2] = (long)(GZ_OFFSET * sens);
 		gyro[0] = (long)(gyro[0] * sens);
 		gyro[1] = (long)(gyro[1] * sens);
 		gyro[2] = (long)(gyro[2] * sens);
 		dmp_set_gyro_bias(gyro);
-		mpu_get_accel_sens(&accel_sens);
-		accel[0] *= accel_sens;
-		accel[1] *= accel_sens;
-		accel[2] *= accel_sens;
-		dmp_set_accel_bias(accel);
+//		mpu_get_accel_sens(&accel_sens);
+//		accel[0] *= accel_sens;
+//		accel[1] *= accel_sens;
+//		accel[2] *= accel_sens;
+////		accel[0] = AX_OFFSET * accel_sens;
+////		accel[1] = AY_OFFSET * accel_sens;
+////		accel[2] = AZ_OFFSET * accel_sens;
+//		dmp_set_accel_bias(accel);
 		return 0;
 	}else return 1;
 }

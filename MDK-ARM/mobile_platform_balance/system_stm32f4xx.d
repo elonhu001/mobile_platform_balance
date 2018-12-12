@@ -11,6 +11,7 @@ mobile_platform_balance\system_stm32f4xx.o: ../Drivers/CMSIS/Device/ST/STM32F4xx
 mobile_platform_balance\system_stm32f4xx.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h
 mobile_platform_balance\system_stm32f4xx.o: ../Inc/stm32f4xx_hal_conf.h
 mobile_platform_balance\system_stm32f4xx.o: ../Inc/main.h
+mobile_platform_balance\system_stm32f4xx.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h
 mobile_platform_balance\system_stm32f4xx.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h
 mobile_platform_balance\system_stm32f4xx.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h
 mobile_platform_balance\system_stm32f4xx.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h
@@ -26,6 +27,8 @@ mobile_platform_balance\system_stm32f4xx.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/
 mobile_platform_balance\system_stm32f4xx.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash.h
 mobile_platform_balance\system_stm32f4xx.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ex.h
 mobile_platform_balance\system_stm32f4xx.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ramfunc.h
+mobile_platform_balance\system_stm32f4xx.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_sram.h
+mobile_platform_balance\system_stm32f4xx.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_fsmc.h
 mobile_platform_balance\system_stm32f4xx.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h
 mobile_platform_balance\system_stm32f4xx.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h
 mobile_platform_balance\system_stm32f4xx.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h
