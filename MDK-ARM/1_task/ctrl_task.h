@@ -16,6 +16,21 @@ typedef struct
 	uint16_t temp;					//ÎÂ¶È
 }imu_t;
 
+typedef struct
+{
+	float balance_kp;
+	float balance_kd;
+	float balance_out;
+	float speed_kp;
+	float speed_ki;
+	float speed_out;
+	float turn_kp;
+	float turn_out;
+	float totall_out;
+	float deat_speed;
+	float mid_angle;
+}param_adjust_t;
+
 extern imu_t imu;
 
 typedef enum
@@ -23,6 +38,7 @@ typedef enum
 	LED0 = 0,
 	LED1 = 1
 }LED;
+void PWM_SetDuty(TIM_HandleTypeDef *tim,uint32_t tim_channel,float duty);
 void start_get_imu_task(void const * argument);
 void led_all_off(void);
 void led_blink(LED led, uint8_t time, uint16_t delay_time);
@@ -80,7 +96,7 @@ static uint32_t GetSector(uint32_t Address);
 static uint32_t GetSectorSize(uint32_t Sector);
 
 /**********************************************lcd part*************************************************/
-#define LCD_SCAN_TASK_PERIOD (10)
+#define LCD_SCAN_TASK_PERIOD (500)
 void start_lcd_scan_task(void const * argument);
 void float_to_str(char *str,double num);
 void uart_send_senser(void);

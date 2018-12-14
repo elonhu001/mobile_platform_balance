@@ -1,13 +1,18 @@
 #include "sys_config.h"
+/*new value to be used*/
+param_adjust_t param_adjust;
+imu_t imu;
+
+
 /*for lcd show*/
 #define LCD_BASE_X 30
 #define LCD_BASE_Y 70
 #define LCD_WORD_SIZE 24
 #define LCD_LINE_SCAPE 30
-char lcd_buf[400];
+char lcd_buf[200];
 #define COUNTOF(_BUFFER_) (sizeof(_BUFFER_)/sizeof(*(_BUFFER_)))
 /*for imu*/
-imu_t imu;
+
 uint8_t imu_init_ok_flag;
 
 balanc_pid_pd_t balanc_pid_pd;
@@ -21,54 +26,58 @@ ramp_t fb_ramp = RAMP_GEN_DAFAULT;
 #define INPUT_ACC_TIME     500  //ms
 
 extern UART_HandleTypeDef huart1;
+
+
 void start_get_imu_task(void const * argument)
 {
-	led_all_off();	
-//	LCD_Init();	
-//	POINT_COLOR=RED;
-//	LCD_ShowString(30,40,210,24,24,"Balance Robot");	
-//	POINT_COLOR=BLUE;
-//	LCD_ShowString(LCD_BASE_X,(LCD_BASE_Y + LCD_LINE_SCAPE * 0),300,24,24,"mpu6050 is initializing...");
-
-	chassis_pid_init();
+	led_all_off();
 	MPU_Init();//初始化MPU6050
-  while(mpu_dmp_init());//innit dmp
-	osDelay(500);
+	while(mpu_dmp_init());//innit dmp
 	imu_init_ok_flag = 1;
-//	LCD_ShowString(LCD_BASE_X,(LCD_BASE_Y + LCD_LINE_SCAPE * 0),300,24,24,"mpu6050 was initialized");
+	chassis_pid_init();
+	osDelay(3000);
 	led_blink(LED0, 1, 0);
-	ramp_init(&fb_ramp, INPUT_ACC_TIME/GET_IMU_TASK_PERIOD);
+//	ramp_init(&fb_ramp, INPUT_ACC_TIME/GET_IMU_TASK_PERIOD);
   uint32_t get_imu_task_wake_time = osKernelSysTick();
   while(1)
   {
-		
-		imu_time_last = HAL_GetTick();
-		
 //		taskENTER_CRITICAL();
-		if(mpu_dmp_get_data(&imu.pitch,&imu.roll,&imu.yaw)==0)
-    {
-			imu.temp=MPU_Get_Temperature();	              //得到温度值
-			MPU_Get_Accelerometer((short *)&imu.aacx,(short *)&imu.aacy,(short *)&imu.aacz);	//得到加速度传感器数据
-			MPU_Get_Gyroscope((short *)&imu.gyrox,(short *)&imu.aacy,(short *)&imu.aacz);	//得到陀螺仪数据
-    }
-		
-//		balance_pid_calc(imu.pitch, imu.gyroy);
-		
+//		if(mpu_dmp_get_data(&imu.pitch,&imu.roll,&imu.yaw)==0)
+//    {
+//			imu.temp=MPU_Get_Temperature();	              //得到温度值
+//			MPU_Get_Accelerometer((short *)&imu.aacx,(short *)&imu.aacy,(short *)&imu.aacz);	//得到加速度传感器数据
+//			MPU_Get_Gyroscope((short *)&imu.gyrox,(short *)&imu.aacy,(short *)&imu.aacz);	//得到陀螺仪数据
+//    }
+//		taskEXIT_CRITICAL();
+//		
+//		param_adjust.balance_out = pid_calc(&pid_balcance, imu.pitch, balanc_pid_pd.middle);
+////		param_adjust.speed_out = pid_calc(&pid_move_speed, imu.pitch, balanc_pid_pd.middle);
+
+
 //		if(balanc_pid_pd.out > 3000)
 //		{
 //			balanc_pid_pd.out = balanc_pid_pd.out * ramp_calc(&fb_ramp);
 //		}
-		balanc_pid_pd.out = pid_calc(&pid_balcance, imu.pitch, balanc_pid_pd.middle);
-		mubiao_sudu[WHEEL_L] = balanc_pid_pd.out;
-		mubiao_sudu[WHEEL_R] = -balanc_pid_pd.out;
-		VAL_LIMIT(mubiao_sudu[WHEEL_L], -4000, 4000);
-		VAL_LIMIT(mubiao_sudu[WHEEL_R], -4000, 4000);
-		for (int i = 0; i < 2; i++)
-		{
-			chassis_speed_set_value[i] = pid_calc(&pid_spd[i], moto_chassis[i].speed_rpm, mubiao_sudu[i]);
-		}
-		VAL_LIMIT(chassis_speed_set_value[WHEEL_L], -4000, 4000);
-		VAL_LIMIT(chassis_speed_set_value[WHEEL_R], -4000, 4000);
+				
+		
+		
+		
+		
+//		imu_time_last = HAL_GetTick();
+//		
+
+//		mubiao_sudu[WHEEL_L] = balanc_pid_pd.out;
+//		mubiao_sudu[WHEEL_R] = -balanc_pid_pd.out;
+		chassis_speed_set_value[WHEEL_L] = (int16_t)balanc_pid_pd.out;
+		chassis_speed_set_value[WHEEL_R] =(int16_t) -balanc_pid_pd.out;
+////		VAL_LIMIT(mubiao_sudu[WHEEL_L], -4000, 4000);
+////		VAL_LIMIT(mubiao_sudu[WHEEL_R], -4000, 4000);
+//		for (int i = 0; i < 2; i++)
+//		{
+//			chassis_speed_set_value[i] = pid_calc(&pid_spd[i], moto_chassis[i].speed_rpm, mubiao_sudu[i]);
+//		}
+//		VAL_LIMIT(chassis_speed_set_value[WHEEL_L], -4000, 4000);
+//		VAL_LIMIT(chassis_speed_set_value[WHEEL_R], -4000, 4000);
 		
 
 		send_chassis_cur(chassis_speed_set_value);
@@ -78,12 +87,12 @@ void start_get_imu_task(void const * argument)
 		
 //		sprintf(lcd_buf, "pitch: %5.3f  mid: %5.3f  kp: %5.3f  kd: %5.3f  out:%7.3f  \n\n", imu.pitch, balanc_pid_pd.middle, balanc_pid_pd.kp, balanc_pid_pd.kd, mubiao_sudu[1]);
 //		HAL_UART_Transmit_DMA(&huart1, (uint8_t *)lcd_buf, COUNTOF(lcd_buf) - 1);
-//		taskEXIT_CRITICAL();
+
 	
 		
 		
 //		osDelayUntil(&get_imu_task_wake_time, GET_IMU_TASK_PERIOD);
-//		osDelay(2);
+		osDelay(5);
 		imu_time_ms = HAL_GetTick() - imu_time_last;
   }
 }
@@ -123,6 +132,22 @@ void led_blink(LED led, uint8_t time, uint16_t delay_time)
 	}
 }
 
+void chassis_pid_init(void)
+{
+	param_adjust.balance_kp = 200.0f;
+	param_adjust.balance_kd = 0.0f;
+	param_adjust.speed_kp = 0;
+	param_adjust.speed_ki = 0;
+	param_adjust.mid_angle = 0;
+  for (int k = 0; k < 2; k++)
+  {
+    PID_struct_init(&pid_spd[k], POSITION_PID, 10000, 500, 20.5f, 0.05, 0);
+  }  
+	PID_struct_init(&pid_balcance, POSITION_PID, 4000, 500, param_adjust.balance_kp, 0, param_adjust.balance_kd);
+	PID_struct_init(&pid_move_speed, POSITION_PID, 4000, 500, param_adjust.speed_kp, 0, param_adjust.speed_ki);
+}
+
+
 /**********************************************control part*************************************************/
 /*to get programe excute time*/
 uint32_t _time_ms;
@@ -150,18 +175,10 @@ void start_ctrl_task(void const * argument)
   }
 }
 
-void chassis_pid_init(void)
-{
-	balanc_pid_pd.kp = 250.0;
-	balanc_pid_pd.kd = 120.0f;
-	balanc_pid_pd.middle = 1.9;
-	
-  for (int k = 0; k < 2; k++)
-  {
-    PID_struct_init(&pid_spd[k], POSITION_PID, 10000, 500, 20.5f, 0.05, 0);
-  }  
-	PID_struct_init(&pid_balcance, POSITION_PID, 4000, 500, balanc_pid_pd.kp, 0, balanc_pid_pd.kd);
-}
+
+
+
+
 void balance_pid_calc(float angle_pitch, float gyro_pitch)
 {
 	balanc_pid_pd.bias = angle_pitch - balanc_pid_pd.middle;
@@ -209,6 +226,7 @@ void start_key_scan_task(void const * argument)
 				if(modify_option == 0)
 				{
 					balanc_pid_pd.kp += 10.0f;
+					balanc_pid_pd.out += 10.0f;
 				}
 				else if(modify_option == 1)
 				{
@@ -225,6 +243,7 @@ void start_key_scan_task(void const * argument)
 				if(modify_option == 0)
 				{
 					balanc_pid_pd.kp -= 10.0f;
+					balanc_pid_pd.out -= 10.0f;
 				}
 				else if(modify_option == 1)
 				{
@@ -365,6 +384,7 @@ void start_lcd_scan_task(void const * argument)
 //			uart_send_senser();
 			sprintf(lcd_buf, "pitch: %5.3f  mid: %5.3f  kp: %5.3f  kd: %5.3f  out:%7.3f  \n", imu.pitch, balanc_pid_pd.middle, balanc_pid_pd.kp, balanc_pid_pd.kd, mubiao_sudu[1]);
 			HAL_UART_Transmit_DMA(&huart1, (uint8_t *)lcd_buf, COUNTOF(lcd_buf) - 1);
+			osDelay(500);
 //			LCD_ShowString(LCD_BASE_X,(LCD_BASE_Y + LCD_LINE_SCAPE * 1),300,24,24,(u8 *)lcd_buf);
 //			sprintf(lcd_buf, "roll: %5.3f", imu.roll);
 //			LCD_ShowString(LCD_BASE_X,(LCD_BASE_Y + LCD_LINE_SCAPE * 2),300,24,24,(u8 *)lcd_buf);
