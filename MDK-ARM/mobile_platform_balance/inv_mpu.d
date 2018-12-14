@@ -1,9 +1,9 @@
 mobile_platform_balance\inv_mpu.o: 0_bsp\MPU6050\eMPL\inv_mpu.c
-mobile_platform_balance\inv_mpu.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\stdio.h
-mobile_platform_balance\inv_mpu.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\stdint.h
-mobile_platform_balance\inv_mpu.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\stdlib.h
-mobile_platform_balance\inv_mpu.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\string.h
-mobile_platform_balance\inv_mpu.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\math.h
+mobile_platform_balance\inv_mpu.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\stdio.h
+mobile_platform_balance\inv_mpu.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\stdint.h
+mobile_platform_balance\inv_mpu.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\stdlib.h
+mobile_platform_balance\inv_mpu.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\string.h
+mobile_platform_balance\inv_mpu.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\math.h
 mobile_platform_balance\inv_mpu.o: 0_bsp\MPU6050\eMPL\inv_mpu.h
 mobile_platform_balance\inv_mpu.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h
 mobile_platform_balance\inv_mpu.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h
@@ -42,7 +42,7 @@ mobile_platform_balance\inv_mpu.o: 0_bsp\MPU6050\eMPL\inv_mpu_dmp_motion_driver.
 mobile_platform_balance\inv_mpu.o: .\0_bsp\sys_config.h
 mobile_platform_balance\inv_mpu.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h
 mobile_platform_balance\inv_mpu.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
-mobile_platform_balance\inv_mpu.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\stddef.h
+mobile_platform_balance\inv_mpu.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\stddef.h
 mobile_platform_balance\inv_mpu.o: ../Inc/FreeRTOSConfig.h
 mobile_platform_balance\inv_mpu.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
 mobile_platform_balance\inv_mpu.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h

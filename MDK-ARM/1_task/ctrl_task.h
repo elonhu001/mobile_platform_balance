@@ -7,29 +7,39 @@ typedef struct
 	float pitch;
 	float roll;
 	float yaw; 		//欧拉角
-	uint16_t aacx;
+	uint16_t aacx;//加速度传感器原始数据
 	uint16_t aacy;
-	uint16_t aacz;		//加速度传感器原始数据
-	uint16_t gyrox;
+	uint16_t aacz;		
+	uint16_t gyrox;	//陀螺仪原始数据
 	uint16_t gyroy;
-	uint16_t gyroz;	//陀螺仪原始数据
-	uint16_t temp;					//温度
+	uint16_t gyroz;
+	uint16_t temp;	//温度
 }imu_t;
 
 typedef struct
 {
+	/*第一部分参数将在调参阶段发挥作用，之后将被固定*/
 	float balance_kp;
 	float balance_kd;
-	float balance_out;
+	float deat_balance_out;
 	float speed_kp;
 	float speed_ki;
-	float speed_out;
 	float turn_kp;
-	float turn_out;
-	float totall_out;
-	float deat_speed;
 	float mid_angle;
-}param_adjust_t;
+	
+	/*第二部分为系统重要变量*/
+	float balance_out;
+	float speed_out;
+	float turn_out;
+	float totall_out[2];
+	
+	float theta; //posture_angle
+	float psi;//direction_angle
+	float v; /*!< system speed, (vl + vr)/2 */
+	float vl;/*!< left wheel line speed */
+	float vr;/*!< right wheel line speed */
+	
+}sys_variable_t;
 
 extern imu_t imu;
 

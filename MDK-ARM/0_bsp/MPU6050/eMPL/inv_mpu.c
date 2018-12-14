@@ -2884,7 +2884,7 @@ u8 run_self_test(void)
 		* to the DMP.
 		*/
 		float sens;
-		unsigned short accel_sens;
+//		unsigned short accel_sens;
 		mpu_get_gyro_sens(&sens);
 //		gyro[0] = (long)(GX_OFFSET * sens);
 //		gyro[1] = (long)(GY_OFFSET * sens);

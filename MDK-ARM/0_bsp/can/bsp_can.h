@@ -59,7 +59,7 @@ typedef struct
   int32_t  filter_rate;
 } moto_measure_t;
 
-extern moto_measure_t moto_chassis[4];
+extern moto_measure_t moto_chassis[2];
 
 HAL_StatusTypeDef can_filter_init(CAN_HandleTypeDef* hcan);
 void get_moto_offset(moto_measure_t* ptr, uint8_t* data);

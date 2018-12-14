@@ -1,9 +1,9 @@
 mobile_platform_balance\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/queue.c
-mobile_platform_balance\queue.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\stdlib.h
-mobile_platform_balance\queue.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\string.h
+mobile_platform_balance\queue.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\stdlib.h
+mobile_platform_balance\queue.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\string.h
 mobile_platform_balance\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
-mobile_platform_balance\queue.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\stddef.h
-mobile_platform_balance\queue.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\stdint.h
+mobile_platform_balance\queue.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\stddef.h
+mobile_platform_balance\queue.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\stdint.h
 mobile_platform_balance\queue.o: ../Inc/FreeRTOSConfig.h
 mobile_platform_balance\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
 mobile_platform_balance\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h

@@ -1,8 +1,7 @@
 #include "sys_config.h"
 /*new value to be used*/
-param_adjust_t param_adjust;
 imu_t imu;
-
+sys_variable_t sys_variable;
 
 /*for lcd show*/
 #define LCD_BASE_X 30
@@ -10,26 +9,26 @@ imu_t imu;
 #define LCD_WORD_SIZE 24
 #define LCD_LINE_SCAPE 30
 char lcd_buf[200];
-#define COUNTOF(_BUFFER_) (sizeof(_BUFFER_)/sizeof(*(_BUFFER_)))
+#define COUNTOF(__BUFFER__)   (sizeof(__BUFFER__) / sizeof(*(__BUFFER__)))
 /*for imu*/
 
 uint8_t imu_init_ok_flag;
 
 balanc_pid_pd_t balanc_pid_pd;
-int16_t chassis_speed_set_value[2];
-float mubiao_sudu[2];
-/*to get programe excute time*/
-uint32_t imu_time_ms;
-uint32_t imu_time_last;
+
 /*ramp for big input*/
-ramp_t fb_ramp = RAMP_GEN_DAFAULT;
-#define INPUT_ACC_TIME     500  //ms
+//ramp_t fb_ramp = RAMP_GEN_DAFAULT;
+//#define INPUT_ACC_TIME     500  //ms
+//	ramp_init(&fb_ramp, INPUT_ACC_TIME/GET_IMU_TASK_PERIOD);
 
 extern UART_HandleTypeDef huart1;
 
-
+/*to get task  period*/
+uint32_t imu_time_ms;
+uint32_t imu_time_last;
 void start_get_imu_task(void const * argument)
 {
+	uint8_t speed_circle_cnt;
 	led_all_off();
 	MPU_Init();//初始化MPU6050
 	while(mpu_dmp_init());//innit dmp
@@ -37,63 +36,46 @@ void start_get_imu_task(void const * argument)
 	chassis_pid_init();
 	osDelay(3000);
 	led_blink(LED0, 1, 0);
-//	ramp_init(&fb_ramp, INPUT_ACC_TIME/GET_IMU_TASK_PERIOD);
+
   uint32_t get_imu_task_wake_time = osKernelSysTick();
   while(1)
   {
-//		taskENTER_CRITICAL();
-//		if(mpu_dmp_get_data(&imu.pitch,&imu.roll,&imu.yaw)==0)
-//    {
-//			imu.temp=MPU_Get_Temperature();	              //得到温度值
-//			MPU_Get_Accelerometer((short *)&imu.aacx,(short *)&imu.aacy,(short *)&imu.aacz);	//得到加速度传感器数据
-//			MPU_Get_Gyroscope((short *)&imu.gyrox,(short *)&imu.aacy,(short *)&imu.aacz);	//得到陀螺仪数据
-//    }
-//		taskEXIT_CRITICAL();
-//		
-//		param_adjust.balance_out = pid_calc(&pid_balcance, imu.pitch, balanc_pid_pd.middle);
-////		param_adjust.speed_out = pid_calc(&pid_move_speed, imu.pitch, balanc_pid_pd.middle);
-
-
-//		if(balanc_pid_pd.out > 3000)
-//		{
-//			balanc_pid_pd.out = balanc_pid_pd.out * ramp_calc(&fb_ramp);
-//		}
-				
-		
-		
-		
-		
-//		imu_time_last = HAL_GetTick();
-//		
-
-//		mubiao_sudu[WHEEL_L] = balanc_pid_pd.out;
-//		mubiao_sudu[WHEEL_R] = -balanc_pid_pd.out;
-		chassis_speed_set_value[WHEEL_L] = (int16_t)balanc_pid_pd.out;
-		chassis_speed_set_value[WHEEL_R] =(int16_t) -balanc_pid_pd.out;
-////		VAL_LIMIT(mubiao_sudu[WHEEL_L], -4000, 4000);
-////		VAL_LIMIT(mubiao_sudu[WHEEL_R], -4000, 4000);
-//		for (int i = 0; i < 2; i++)
-//		{
-//			chassis_speed_set_value[i] = pid_calc(&pid_spd[i], moto_chassis[i].speed_rpm, mubiao_sudu[i]);
-//		}
-//		VAL_LIMIT(chassis_speed_set_value[WHEEL_L], -4000, 4000);
-//		VAL_LIMIT(chassis_speed_set_value[WHEEL_R], -4000, 4000);
-		
-
-		send_chassis_cur(chassis_speed_set_value);
-		
-		pid_balcance.p = balanc_pid_pd.kp;
-		pid_balcance.d = balanc_pid_pd.kd;
-		
-//		sprintf(lcd_buf, "pitch: %5.3f  mid: %5.3f  kp: %5.3f  kd: %5.3f  out:%7.3f  \n\n", imu.pitch, balanc_pid_pd.middle, balanc_pid_pd.kp, balanc_pid_pd.kd, mubiao_sudu[1]);
-//		HAL_UART_Transmit_DMA(&huart1, (uint8_t *)lcd_buf, COUNTOF(lcd_buf) - 1);
-
-	
-		
-		
-//		osDelayUntil(&get_imu_task_wake_time, GET_IMU_TASK_PERIOD);
-		osDelay(5);
 		imu_time_ms = HAL_GetTick() - imu_time_last;
+		imu_time_last = HAL_GetTick();
+		taskENTER_CRITICAL();
+
+			mpu_dmp_get_data(&imu.pitch,&imu.roll,&imu.yaw);
+			imu.temp=MPU_Get_Temperature();	              //得到温度值
+			MPU_Get_Accelerometer((short *)&imu.aacx,(short *)&imu.aacy,(short *)&imu.aacz);	//得到加速度传感器数据
+			MPU_Get_Gyroscope((short *)&imu.gyrox,(short *)&imu.aacy,(short *)&imu.aacz);	//得到陀螺仪数据
+		sys_variable.theta = imu.pitch;
+		taskEXIT_CRITICAL();
+		
+		/*balance circle | current circle*/
+		sys_variable.balance_out = sys_variable.deat_balance_out + pid_calc(&pid_balcance, sys_variable.theta, sys_variable.mid_angle);
+		
+		/*speed circle*/
+		speed_circle_cnt++;
+		sys_variable.vl = moto_chassis[WHEEL_L].speed_rpm;
+		sys_variable.vr = moto_chassis[WHEEL_R].speed_rpm;
+		sys_variable.v = (sys_variable.vl + sys_variable.vr)/2.0f;
+		if(speed_circle_cnt == 20)
+		{
+			speed_circle_cnt= 0 ;
+			sys_variable.speed_out = pid_calc(&pid_move_speed, sys_variable.v, 0);//最后一个参数是目标速度，这里暂时不用，给0		
+		}
+		/*direction circle*/
+		sys_variable.turn_out = pid_calc(&pid_turn, 0, 0);
+		
+		sys_variable.totall_out[WHEEL_L] = sys_variable.balance_out + sys_variable.speed_out + sys_variable.turn_out;
+		sys_variable.totall_out[WHEEL_R] = -sys_variable.balance_out - sys_variable.speed_out + sys_variable.turn_out;
+		VAL_LIMIT(sys_variable.totall_out[WHEEL_L], -MAX_WHEEL_RPM, MAX_WHEEL_RPM);
+		VAL_LIMIT(sys_variable.totall_out[WHEEL_R], -MAX_WHEEL_RPM, MAX_WHEEL_RPM);
+		
+		send_chassis_cur((int16_t *)sys_variable.totall_out);
+		
+		osDelayUntil(&get_imu_task_wake_time, GET_IMU_TASK_PERIOD);
+		
   }
 }
 
@@ -134,17 +116,16 @@ void led_blink(LED led, uint8_t time, uint16_t delay_time)
 
 void chassis_pid_init(void)
 {
-	param_adjust.balance_kp = 200.0f;
-	param_adjust.balance_kd = 0.0f;
-	param_adjust.speed_kp = 0;
-	param_adjust.speed_ki = 0;
-	param_adjust.mid_angle = 0;
-  for (int k = 0; k < 2; k++)
-  {
-    PID_struct_init(&pid_spd[k], POSITION_PID, 10000, 500, 20.5f, 0.05, 0);
-  }  
-	PID_struct_init(&pid_balcance, POSITION_PID, 4000, 500, param_adjust.balance_kp, 0, param_adjust.balance_kd);
-	PID_struct_init(&pid_move_speed, POSITION_PID, 4000, 500, param_adjust.speed_kp, 0, param_adjust.speed_ki);
+	sys_variable.balance_kp = 200.0f;
+	sys_variable.balance_kd = 0.0f;
+	sys_variable.deat_balance_out = 0;
+	sys_variable.speed_kp = 0;
+	sys_variable.speed_ki = 0;
+	sys_variable.mid_angle = 0;
+ 
+	PID_struct_init(&pid_balcance, POSITION_PID, 8000, 0, sys_variable.balance_kp, 0, sys_variable.balance_kd);
+	PID_struct_init(&pid_move_speed, POSITION_PID, 8000, 500, sys_variable.speed_kp, sys_variable.speed_ki, 0);
+	PID_struct_init(&pid_turn, POSITION_PID, 8000, 0, sys_variable.turn_kp, 0, 0);
 }
 
 
@@ -158,20 +139,20 @@ void start_ctrl_task(void const * argument)
   uint32_t ctrl_task_wake_time = osKernelSysTick();
   while(1)
   {
-		balance_pid_calc(imu.pitch, imu.gyroy);
-		mubiao_sudu[WHEEL_L] = -balanc_pid_pd.out;
-		mubiao_sudu[WHEEL_R] = balanc_pid_pd.out;
-//		VAL_LIMIT(mubiao_sudu[WHEEL_L], -10000, 10000);
-//		VAL_LIMIT(mubiao_sudu[WHEEL_R], -10000, 10000);
-//		send_chassis_cur(mubiao_sudu);
-		for (int i = 0; i < 2; i++)
-		{
-			chassis_speed_set_value[i] = pid_calc(&pid_spd[i], moto_chassis[i].speed_rpm, mubiao_sudu[i]);
-		}
-		VAL_LIMIT(chassis_speed_set_value[WHEEL_L], -8000, 8000);
-		VAL_LIMIT(chassis_speed_set_value[WHEEL_R], -8000, 8000);
-		send_chassis_cur(chassis_speed_set_value);
-		osDelayUntil(&ctrl_task_wake_time, CTRL_TASK_PERIOD);
+//		balance_pid_calc(imu.pitch, imu.gyroy);
+//		mubiao_sudu[WHEEL_L] = -balanc_pid_pd.out;
+//		mubiao_sudu[WHEEL_R] = balanc_pid_pd.out;
+////		VAL_LIMIT(mubiao_sudu[WHEEL_L], -10000, 10000);
+////		VAL_LIMIT(mubiao_sudu[WHEEL_R], -10000, 10000);
+////		send_chassis_cur(mubiao_sudu);
+//		for (int i = 0; i < 2; i++)
+//		{
+//			chassis_speed_set_value[i] = pid_calc(&pid_spd[i], moto_chassis[i].speed_rpm, mubiao_sudu[i]);
+//		}
+//		VAL_LIMIT(chassis_speed_set_value[WHEEL_L], -8000, 8000);
+//		VAL_LIMIT(chassis_speed_set_value[WHEEL_R], -8000, 8000);
+//		send_chassis_cur(chassis_speed_set_value);
+//		osDelayUntil(&ctrl_task_wake_time, CTRL_TASK_PERIOD);
   }
 }
 
@@ -205,18 +186,6 @@ void start_key_scan_task(void const * argument)
   {
 		key_flag = key_scan(0);
 		
-//		if(songshou && HAL_GPIO_ReadPin(KEY_WK_UP_GPIO_Port,KEY_WK_UP_Pin))
-//		{
-//			songshou=0;
-//			osDelay(10);
-//			if(HAL_GPIO_ReadPin(KEY_WK_UP_GPIO_Port,KEY_WK_UP_Pin))
-//			{
-//				key_flag = WKUP_PRES;
-//			}
-//		}
-//		else{key_flag = 0;songshou=1;}
-		
-		
 		switch (key_flag)
 		{
 			case WKUP_PRES: modify_option--;if(modify_option < 0)modify_option = 2;break;
@@ -225,16 +194,15 @@ void start_key_scan_task(void const * argument)
 			{
 				if(modify_option == 0)
 				{
-					balanc_pid_pd.kp += 10.0f;
-					balanc_pid_pd.out += 10.0f;
+					sys_variable.balance_kp += 1.0f;
 				}
 				else if(modify_option == 1)
 				{
-					balanc_pid_pd.kd += 1.0f;
+					sys_variable.balance_kd += 1.0f;
 				}
 				else if(modify_option == 2)
 				{
-					balanc_pid_pd.middle += 0.1f;
+					sys_variable.mid_angle += 0.1f;
 				}
 				else{}
 			}break;
@@ -242,16 +210,15 @@ void start_key_scan_task(void const * argument)
 			{
 				if(modify_option == 0)
 				{
-					balanc_pid_pd.kp -= 10.0f;
-					balanc_pid_pd.out -= 10.0f;
+					sys_variable.balance_kp -= 1.0f;
 				}
 				else if(modify_option == 1)
 				{
-					balanc_pid_pd.kd -= 1.0f;
+					sys_variable.balance_kd -= 1.0f;
 				}
 				else if(modify_option == 2)
 				{
-					balanc_pid_pd.middle -= 0.1f;
+					sys_variable.mid_angle -= 0.1f;
 				}
 				else{}
 			}break;
@@ -372,55 +339,22 @@ static uint32_t GetSectorSize(uint32_t Sector)
 
 /**********************************************lcd scan part*************************************************/
 
-
+/*to get task  period*/
+uint32_t msg_send_time_ms;
+uint32_t msg_send_time_last;
 void start_lcd_scan_task(void const * argument)
 {
 
   uint32_t lcd_scan_task_wake_time = osKernelSysTick();
   while(1)
   {
+		msg_send_time_ms = HAL_GetTick() - msg_send_time_last;
+		msg_send_time_last = HAL_GetTick();
 		if(imu_init_ok_flag == 1)
 		{
-//			uart_send_senser();
-			sprintf(lcd_buf, "pitch: %5.3f  mid: %5.3f  kp: %5.3f  kd: %5.3f  out:%7.3f  \n", imu.pitch, balanc_pid_pd.middle, balanc_pid_pd.kp, balanc_pid_pd.kd, mubiao_sudu[1]);
-			HAL_UART_Transmit_DMA(&huart1, (uint8_t *)lcd_buf, COUNTOF(lcd_buf) - 1);
-			osDelay(500);
-//			LCD_ShowString(LCD_BASE_X,(LCD_BASE_Y + LCD_LINE_SCAPE * 1),300,24,24,(u8 *)lcd_buf);
-//			sprintf(lcd_buf, "roll: %5.3f", imu.roll);
-//			LCD_ShowString(LCD_BASE_X,(LCD_BASE_Y + LCD_LINE_SCAPE * 2),300,24,24,(u8 *)lcd_buf);
-//			sprintf(lcd_buf, "yaw: %5.3f", imu.yaw);
-//			LCD_ShowString(LCD_BASE_X,(LCD_BASE_Y + LCD_LINE_SCAPE * 3),300,24,24,(u8 *)lcd_buf);
-
-//			sprintf(lcd_buf, "gyrox: %5d", imu.gyrox);
-//			LCD_ShowString(LCD_BASE_X,(LCD_BASE_Y + LCD_LINE_SCAPE * 4),300,24,24,(u8 *)lcd_buf);
-//			sprintf(lcd_buf, "gyroy: %5d", imu.gyroy);
-//			LCD_ShowString(LCD_BASE_X,(LCD_BASE_Y + LCD_LINE_SCAPE * 5),300,24,24,(u8 *)lcd_buf);
-//			sprintf(lcd_buf, "gyroz: %5d", imu.gyroz);
-//			LCD_ShowString(LCD_BASE_X,(LCD_BASE_Y + LCD_LINE_SCAPE * 6),300,24,24,(u8 *)lcd_buf);
-
-//			sprintf(lcd_buf, "aacx: %5d", imu.aacx);
-//			LCD_ShowString(LCD_BASE_X,(LCD_BASE_Y + LCD_LINE_SCAPE * 7),300,24,24,(u8 *)lcd_buf);
-//			sprintf(lcd_buf, "aacy: %5d", imu.aacy);
-//			LCD_ShowString(LCD_BASE_X,(LCD_BASE_Y + LCD_LINE_SCAPE * 8),300,24,24,(u8 *)lcd_buf);
-//			sprintf(lcd_buf, "aacz: %5d", imu.aacz);
-//			LCD_ShowString(LCD_BASE_X,(LCD_BASE_Y + LCD_LINE_SCAPE * 9),300,24,24,(u8 *)lcd_buf);
-				
-//			sprintf(lcd_buf, "temp: %5d", imu.temp);
-//			LCD_ShowString(LCD_BASE_X,(LCD_BASE_Y + LCD_LINE_SCAPE * 10),300,24,24,(u8 *)lcd_buf);
-//			sprintf(lcd_buf, "  balance_kp: %5.3f", balanc_pid_pd.kp);
-//			LCD_ShowString(LCD_BASE_X,(LCD_BASE_Y + LCD_LINE_SCAPE * 11),300,24,24,(u8 *)lcd_buf);
-//			sprintf(lcd_buf, "  balance_kd: %5.3f", balanc_pid_pd.kd);
-//			LCD_ShowString(LCD_BASE_X,(LCD_BASE_Y + LCD_LINE_SCAPE * 12),300,24,24,(u8 *)lcd_buf);		
-//			sprintf(lcd_buf, "  middle: %5.3f", balanc_pid_pd.middle);
-//			LCD_ShowString(LCD_BASE_X,(LCD_BASE_Y + LCD_LINE_SCAPE * 13),300,24,24,(u8 *)lcd_buf);	
-			
-//			switch(modify_option)
-//			{
-//				case 0:LCD_ShowString(LCD_BASE_X,(LCD_BASE_Y + LCD_LINE_SCAPE * 11),8,24,24,(u8 *)">");break;
-//				case 1:LCD_ShowString(LCD_BASE_X,(LCD_BASE_Y + LCD_LINE_SCAPE * 12),8,24,24,(u8 *)">");break;
-//				case 2:LCD_ShowString(LCD_BASE_X,(LCD_BASE_Y + LCD_LINE_SCAPE * 13),8,24,24,(u8 *)">");break;
-//			  default: break;
-//			}
+//			uart_send_senser();		
+			sprintf(lcd_buf, "pitch: %5.3f  mid: %5.3f  kp: %5.3f  kd: %5.3f  out:%7.3f  \n", sys_variable.theta, sys_variable.mid_angle, sys_variable.balance_kp, sys_variable.balance_kd, sys_variable.totall_out[WHEEL_L]);
+			HAL_UART_Transmit_DMA(&huart1, (uint8_t *)lcd_buf, (COUNTOF(lcd_buf) - 1));
 		}
 
 		osDelayUntil(&lcd_scan_task_wake_time, LCD_SCAN_TASK_PERIOD);

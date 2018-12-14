@@ -18,7 +18,7 @@
 extern CAN_HandleTypeDef hcan2;
 
 uint8_t can1_rx_data[CAN_RX_FIFO_SIZE];
-moto_measure_t moto_chassis[4];
+moto_measure_t moto_chassis[2];
 
 /**
   * @brief  Configures the CAN, transmit and receive by polling

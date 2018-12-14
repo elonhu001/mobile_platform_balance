@@ -56,7 +56,7 @@ typedef uint32_t u32;
 /* the deceleration ratio of chassis motor */
 #define CHASSIS_DECELE_RATIO (1.0f/19.0f)
 /* single 3508 motor maximum speed, unit is rpm */
-#define MAX_WHEEL_RPM        10000  //8347rpm = 3500mm/s
+#define MAX_WHEEL_RPM        8000  //8347rpm = 3500mm/s
 /* chassis maximum translation speed, unit is mm/s */
 #define MAX_CHASSIS_VX_SPEED 8000  //8000rpm
 #define MAX_CHASSIS_VY_SPEED 5000

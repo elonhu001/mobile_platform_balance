@@ -1,8 +1,8 @@
 mobile_platform_balance\list.o: ../Middlewares/Third_Party/FreeRTOS/Source/list.c
-mobile_platform_balance\list.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\stdlib.h
+mobile_platform_balance\list.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\stdlib.h
 mobile_platform_balance\list.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
-mobile_platform_balance\list.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\stddef.h
-mobile_platform_balance\list.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\stdint.h
+mobile_platform_balance\list.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\stddef.h
+mobile_platform_balance\list.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\stdint.h
 mobile_platform_balance\list.o: ../Inc/FreeRTOSConfig.h
 mobile_platform_balance\list.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
 mobile_platform_balance\list.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h

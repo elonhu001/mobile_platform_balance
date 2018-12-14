@@ -8,7 +8,7 @@ mobile_platform_balance\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ha
 mobile_platform_balance\main.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h
 mobile_platform_balance\main.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h
 mobile_platform_balance\main.o: ../Drivers/CMSIS/Include/core_cm4.h
-mobile_platform_balance\main.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\stdint.h
+mobile_platform_balance\main.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\stdint.h
 mobile_platform_balance\main.o: ../Drivers/CMSIS/Include/core_cmInstr.h
 mobile_platform_balance\main.o: ../Drivers/CMSIS/Include/cmsis_armcc.h
 mobile_platform_balance\main.o: ../Drivers/CMSIS/Include/core_cmFunc.h
@@ -16,7 +16,7 @@ mobile_platform_balance\main.o: ../Drivers/CMSIS/Include/core_cmSimd.h
 mobile_platform_balance\main.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/system_stm32f4xx.h
 mobile_platform_balance\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h
 mobile_platform_balance\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy/stm32_hal_legacy.h
-mobile_platform_balance\main.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\stdio.h
+mobile_platform_balance\main.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\stdio.h
 mobile_platform_balance\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc_ex.h
 mobile_platform_balance\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_gpio.h
 mobile_platform_balance\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_gpio_ex.h
@@ -36,7 +36,7 @@ mobile_platform_balance\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ha
 mobile_platform_balance\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
 mobile_platform_balance\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h
 mobile_platform_balance\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
-mobile_platform_balance\main.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\stddef.h
+mobile_platform_balance\main.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\stddef.h
 mobile_platform_balance\main.o: ../Inc/FreeRTOSConfig.h
 mobile_platform_balance\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
 mobile_platform_balance\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
@@ -56,9 +56,9 @@ mobile_platform_balance\main.o: ../Inc/usart.h
 mobile_platform_balance\main.o: ../Inc/gpio.h
 mobile_platform_balance\main.o: ../Inc/fsmc.h
 mobile_platform_balance\main.o: .\0_bsp\sys_config.h
-mobile_platform_balance\main.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\stdlib.h
-mobile_platform_balance\main.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\string.h
-mobile_platform_balance\main.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\math.h
+mobile_platform_balance\main.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\stdlib.h
+mobile_platform_balance\main.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\string.h
+mobile_platform_balance\main.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\math.h
 mobile_platform_balance\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h
 mobile_platform_balance\main.o: .\0_bsp\IIC\myiic.h
 mobile_platform_balance\main.o: .\0_bsp\sys_config.h

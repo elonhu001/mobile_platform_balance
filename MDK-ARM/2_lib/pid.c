@@ -140,15 +140,17 @@ void PID_struct_init(
   pid->f_pid_reset(pid, kp, ki, kd);
 }
 
-pid_t pid_yaw           = {0};
-pid_t pid_pit           = {0};
-pid_t pid_yaw_spd       = {0};
-pid_t pid_pit_spd       = {0};
-pid_t pid_spd[4]        = {0};
-pid_t pid_chassis_angle = {0};
-pid_t pid_trigger       = {0};
-pid_t pid_trigger_spd   = {0};
-pid_t pid_imu_tmp       = {0};
+//pid_t pid_yaw           = {0};
+//pid_t pid_pit           = {0};
+//pid_t pid_yaw_spd       = {0};
+//pid_t pid_pit_spd       = {0};
+
+//pid_t pid_chassis_angle = {0};
+//pid_t pid_trigger       = {0};
+//pid_t pid_trigger_spd   = {0};
+//pid_t pid_imu_tmp       = {0};
 
 pid_t pid_balcance      = {0};
+pid_t pid_move_speed    = {0};
+pid_t pid_turn          = {0};
 
