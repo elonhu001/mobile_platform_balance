@@ -10,7 +10,7 @@
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
-  * Copyright (c) 2018 STMicroelectronics International N.V. 
+  * Copyright (c) 2019 STMicroelectronics International N.V. 
   * All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
@@ -52,7 +52,6 @@
 #define __MAIN_H__
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx_hal.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -72,12 +71,16 @@
 #define LED0_GPIO_Port GPIOF
 #define LED1_Pin GPIO_PIN_10
 #define LED1_GPIO_Port GPIOF
-#define MPU6050_INT_Pin GPIO_PIN_0
-#define MPU6050_INT_GPIO_Port GPIOC
+#define ENABLE_L_Pin GPIO_PIN_0
+#define ENABLE_L_GPIO_Port GPIOC
+#define DIRECTION_L_Pin GPIO_PIN_1
+#define DIRECTION_L_GPIO_Port GPIOC
+#define ENABLE_R_Pin GPIO_PIN_2
+#define ENABLE_R_GPIO_Port GPIOC
+#define DIRECTION_R_Pin GPIO_PIN_3
+#define DIRECTION_R_GPIO_Port GPIOC
 #define KEY_WK_UP_Pin GPIO_PIN_0
 #define KEY_WK_UP_GPIO_Port GPIOA
-#define LCD_BL_Pin GPIO_PIN_15
-#define LCD_BL_GPIO_Port GPIOB
 #define IIC_SCL_Pin GPIO_PIN_8
 #define IIC_SCL_GPIO_Port GPIOB
 #define IIC_SDA_Pin GPIO_PIN_9

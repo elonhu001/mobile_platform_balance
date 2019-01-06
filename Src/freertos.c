@@ -123,17 +123,17 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-//	osThreadDef(lcd_scan_task, start_lcd_scan_task, osPriorityNormal, 0, 500);
-//	led_scan_TaskHandle = osThreadCreate(osThread(lcd_scan_task), NULL);  
-	
-	osThreadDef(get_imu_task, start_get_imu_task, osPriorityNormal, 0, 500);
+	osThreadDef(lcd_scan_task, start_lcd_scan_task, osPriorityNormal, 0, 500);
+	led_scan_TaskHandle = osThreadCreate(osThread(lcd_scan_task), NULL);  
+//	
+	osThreadDef(get_imu_task, start_get_imu_task, osPriorityAboveNormal, 0, 500);
 	get_imu_TaskHandle = osThreadCreate(osThread(get_imu_task), NULL);  
 	
 //	osThreadDef(ctrl_task, start_ctrl_task, osPriorityNormal, 0, 128);
 //	ctrl_TaskHandle = osThreadCreate(osThread(ctrl_task), NULL);
 
-	osThreadDef(key_scan_task, start_key_scan_task, osPriorityNormal, 0, 500);
-	key_scan_TaskHandle = osThreadCreate(osThread(key_scan_task), NULL);
+//	osThreadDef(key_scan_task, start_key_scan_task, osPriorityNormal, 0, 500);
+//	key_scan_TaskHandle = osThreadCreate(osThread(key_scan_task), NULL);
 
 
   /* USER CODE END RTOS_THREADS */

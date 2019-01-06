@@ -127,9 +127,11 @@ void encoder_data_handler(moto_measure_t* ptr, uint8_t* data)
 
   ptr->speed_rpm     = (int16_t)(data[2] << 8 | data[3]);
   ptr->given_current = (int16_t)(data[4] << 8 | data[5]);
-
+	ptr->acc_speed_rad = (ptr->speed_rpm - ptr->speed_rpm_last) * (1000 / 60);
+	ptr->speed_rpm_last = ptr->speed_rpm;
 }
 
+uint32_t time_can, time_can_last;
 void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
 	CAN_RxHeaderTypeDef   hcan1_rx_header;
@@ -144,6 +146,9 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
 		 (hcan1_rx_header.StdId == CAN_3508_M3_ID) || \
 		 (hcan1_rx_header.StdId == CAN_3508_M4_ID))
 	{
+		
+		time_can = HAL_GetTick() - time_can_last;
+		time_can_last = HAL_GetTick();
 		static uint8_t i;
 		i = hcan1_rx_header.StdId - CAN_3508_M1_ID;
 

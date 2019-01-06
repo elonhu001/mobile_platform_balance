@@ -2866,8 +2866,8 @@ lp_int_restore:
 #define q30  1073741824.0f
 
 //陀螺仪方向设置
-static signed char gyro_orientation[9] = { 1, 0, 0,
-                                           0, 1, 0,
+static signed char gyro_orientation[9] = { -1, 0, 0,
+                                           0, -1, 0,
                                            0, 0, 1};
 //MPU6050自测试
 //返回值:0,正常
@@ -2884,7 +2884,7 @@ u8 run_self_test(void)
 		* to the DMP.
 		*/
 		float sens;
-//		unsigned short accel_sens;
+		unsigned short accel_sens;
 		mpu_get_gyro_sens(&sens);
 //		gyro[0] = (long)(GX_OFFSET * sens);
 //		gyro[1] = (long)(GY_OFFSET * sens);
@@ -2957,7 +2957,7 @@ void mget_ms(unsigned long *time)
 u8 mpu_dmp_init(void)
 {
 	u8 res=0;
-	IIC_Init(); 		//初始化IIC总线
+//	IIC_Init(); 		//初始化IIC总线
 	if(mpu_init()==0)	//初始化MPU6050
 	{	 
 		res=mpu_set_sensors(INV_XYZ_GYRO|INV_XYZ_ACCEL);//设置所需要的传感器

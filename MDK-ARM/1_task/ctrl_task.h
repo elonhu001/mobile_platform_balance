@@ -1,20 +1,84 @@
 #ifndef __CTRL_TASK_H
 #define __CTRL_TASK_H
+#include "bsp_uart.h"
+#include "sys_config.h"
 
-#define GET_IMU_TASK_PERIOD (5)
+#define GET_IMU_TASK_PERIOD (3)
 typedef struct 
 {
 	float pitch;
 	float roll;
-	float yaw; 		//Å·À­½Ç
-	uint16_t aacx;//¼ÓËÙ¶È´«¸ĞÆ÷Ô­Ê¼Êı¾İ
-	uint16_t aacy;
-	uint16_t aacz;		
-	uint16_t gyrox;	//ÍÓÂİÒÇÔ­Ê¼Êı¾İ
-	uint16_t gyroy;
-	uint16_t gyroz;
-	uint16_t temp;	//ÎÂ¶È
+	float yaw; 		
+	int16_t accel[3];
+	int16_t gyro[3];
+	int16_t temp;	
 }imu_t;
+extern imu_t imu;
+
+enum
+{
+	WHEEL_L = 0,
+	WHEEL_R = 1
+};
+
+typedef enum
+{
+	DIR_NULL = 0,
+	DIR_POS = 1,
+	DIR_NEG = 2
+}dir_e;
+
+typedef struct
+{
+	uint32_t encoder[2];
+	int32_t  encoder_err;
+	dir_e    dir;
+}motor_ecoder_t;
+
+typedef struct 
+{
+	uint32_t ch;
+	uint8_t  wheel_type;//ç”µæœºåç§°
+	float    speed_rpm;
+	float    speed_rpm_last;
+	int32_t  circle_cnt;
+	int32_t  circle;
+	motor_ecoder_t encoder;
+	float ctrl_give;
+}motor_msg_t;
+#define MOTOR_MSG_LEFT_DEFAULT {TIM_CHANNEL_1, WHEEL_L, 0, 0, 0, 0, {0}}
+#define MOTOR_MSG_RIGHT_DEFAULT {TIM_CHANNEL_2, WHEEL_R, 0, 0, 0, 0, {0}}
+extern motor_msg_t motor_msg_left;
+extern motor_msg_t motor_msg_right;
+
+/*è¯¥ç»“æ„ä½“å¹³è¡¡ç¯å‚æ•°ï¼Œå¹³è¡¡ç¯é‡‡ç”¨PDæ§åˆ¶å™¨*/
+typedef struct
+{
+	float get_pitch;    /*<! è·å–çš„pitchè½´ */
+	float set_pitch;
+	float gyro_y;
+	float kp;
+	float kd;
+	float err;
+	float p_out;
+	float d_out;
+	float out;           /*<! æ§åˆ¶è¾“å‡ºé‡ */
+	float cur_comp[2];   /*<! æ§åˆ¶è¡¥å¿é‡ */
+	float balance_out[2];/*<! æ§åˆ¶è¾“å‡ºé‡ */
+}balance_pid_t;
+
+typedef struct
+{
+	uint8_t speed_circle_cnt;
+	float speed_out;
+}speed_t;
+
+typedef struct
+{
+	uint8_t turn_circle_cnt;
+	float turn_kp;
+	float turn_out;
+}turn_t;
 
 typedef struct
 {
@@ -26,12 +90,15 @@ typedef struct
 	float speed_ki;
 	float turn_kp;
 	float mid_angle;
-	
+	float set_v_speed;
+	float acc_get;
+	float acc_set;
+	float speed_set;
 	/*µÚ¶ş²¿·ÖÎªÏµÍ³ÖØÒª±äÁ¿*/
 	float balance_out;
 	float speed_out;
 	float turn_out;
-	float totall_out[2];
+	int16_t totall_out[4];
 	
 	float theta; //posture_angle
 	float psi;//direction_angle
@@ -41,7 +108,7 @@ typedef struct
 	
 }sys_variable_t;
 
-extern imu_t imu;
+
 
 typedef enum
 {
@@ -52,28 +119,14 @@ void PWM_SetDuty(TIM_HandleTypeDef *tim,uint32_t tim_channel,float duty);
 void start_get_imu_task(void const * argument);
 void led_all_off(void);
 void led_blink(LED led, uint8_t time, uint16_t delay_time);
-
+uint16_t count_buf(uint8_t *buf);
 /**********************************************control part*************************************************/
 #define CTRL_TASK_PERIOD (5)
 
-typedef struct
-{
-	float kp;
-	float kd;
-	float bias;
-	float middle;//this shoult test
-	float out;
-}balanc_pid_pd_t;
-
-enum
-{
-	WHEEL_L = 0,
-	WHEEL_R = 1
-};
 
 void start_ctrl_task(void const * argument);
 void chassis_pid_init(void);
-void balance_pid_calc(float angle_pitch, float gyro_pitch);
+float balance_pid_calc(float get_pitch, float set_pitch, int16_t gyro_y);
 
 
 #define KEY_SCAN_TASK_PERIOD (10)
@@ -98,7 +151,7 @@ void balance_pid_calc(float angle_pitch, float gyro_pitch);
 
 #define KEY0_PRES 	1
 #define KEY1_PRES   2
-#define KEY2_PRES	3
+#define KEY2_PRES		3
 #define WKUP_PRES   4
 void start_key_scan_task(void const * argument);
 uint8_t key_scan(uint8_t mode);
@@ -106,7 +159,7 @@ static uint32_t GetSector(uint32_t Address);
 static uint32_t GetSectorSize(uint32_t Sector);
 
 /**********************************************lcd part*************************************************/
-#define LCD_SCAN_TASK_PERIOD (500)
+#define LCD_SCAN_TASK_PERIOD (10)
 void start_lcd_scan_task(void const * argument);
 void float_to_str(char *str,double num);
 void uart_send_senser(void);

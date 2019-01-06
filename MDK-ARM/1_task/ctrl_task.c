@@ -2,19 +2,13 @@
 /*new value to be used*/
 imu_t imu;
 sys_variable_t sys_variable;
-
-/*for lcd show*/
-#define LCD_BASE_X 30
-#define LCD_BASE_Y 70
-#define LCD_WORD_SIZE 24
-#define LCD_LINE_SCAPE 30
-char lcd_buf[200];
+/*for param show*/
+char lcd_buf[300];
 #define COUNTOF(__BUFFER__)   (sizeof(__BUFFER__) / sizeof(*(__BUFFER__)))
 /*for imu*/
-
 uint8_t imu_init_ok_flag;
 
-balanc_pid_pd_t balanc_pid_pd;
+//balanc_pid_pd_t balanc_pid_pd;
 
 /*ramp for big input*/
 //ramp_t fb_ramp = RAMP_GEN_DAFAULT;
@@ -22,61 +16,343 @@ balanc_pid_pd_t balanc_pid_pd;
 //	ramp_init(&fb_ramp, INPUT_ACC_TIME/GET_IMU_TASK_PERIOD);
 
 extern UART_HandleTypeDef huart1;
-
+int16_t test_acc;
 /*to get task  period*/
 uint32_t imu_time_ms;
 uint32_t imu_time_last;
+
+int16_t test_current = 0;
+uint8_t wheel_ccmd[5];
+
+
+
+
+typedef struct
+{
+	/* é©±åŠ¨å™¨é‡‡é›†çš„å‚æ•° */
+  uint32_t ch;//é‡‡é›†é€šé“ï¼ˆTIM3ï¼¿ 
+  uint32_t capt_buf[3];//è®°å½•è·³å˜æ—¶é—´ï¼Œç”¨äºè®¡ç®—å‘¨æœŸï¼Œé¢‘ç‡
+  int16_t  capt_cnt; //è®°å½•è·³å˜æ¬¡æ•°ï¼Œç”¨äºè®¡ç®—è½¬åŠ¨è§’åº¦ï¼Œåœˆæ•°
+  float    frequncy;//é¢‘ç‡
+  float    cycle_time;//å‘¨æœŸ
+	uint32_t dir_buf[2];
+	/* ç”µæœºå‚æ•° */
+	uint8_t  level_chg_flag;
+	uint8_t  wheel_type;//ç”µæœºåç§°
+	uint8_t  pole_num;//æå¯¹æ•¿
+	uint8_t  level_num;//ä¸¿åœˆçš„ç”µå¹³è½¬æ¢æ¬¡æ•¿
+	dir_e    dir;//å½“å‰è½¬åŠ¨æ–¹å‘ï¼¿-1ä¸ºè´Ÿå‘ï¼Œ0ä¸ºä¸è½¬ï¼Œ+1ä¸ºæ­£å¿
+	float    speed_rpm;//è½¬é¿Ÿï¼Œå‰è¿›ä¸ºæ­£ï¼Œåé¿¿ä¸ºè´¿
+	float    speed_rpm_last;
+  int32_t   round_cnt;//åœˆæ•°ï¼Œå‰è¿›ä¸ºæ­£åœˆæ•°ï¼Œåé¿¿ä¸ºè´Ÿåœˆæ•°
+}motor_t;
+
+#define MOTOR_LEFT_DEFAULT  {TIM_CHANNEL_1, {0}, 0, 0, 0, {0}, 0, WHEEL_L, 30, 90, DIR_NULL, 0, 0}
+#define MOTOR_RIGHT_DEFAULT {TIM_CHANNEL_2, {0}, 0, 0, 0, {0}, 0, WHEEL_R, 30, 90, DIR_NULL, 0, 0}
+#define MAX_SPEED (3000)
+#define ERR_SPEED (1000)
+motor_t motor_left = MOTOR_LEFT_DEFAULT;
+motor_t motor_right = MOTOR_RIGHT_DEFAULT;
+
+
+/**********************************************************************************************/
+balance_pid_t balance_pid;
+speed_t speed;
+turn_t turn;
+static void PWM_SetDuty(TIM_HandleTypeDef *tim,uint32_t tim_channel,float duty)
+{
+	switch(tim_channel)
+	{	
+		case TIM_CHANNEL_1: tim->Instance->CCR1 = (PWM_RESOLUTION*duty) - 1;break;
+		case TIM_CHANNEL_2: tim->Instance->CCR2 = (PWM_RESOLUTION*duty) - 1;break;
+		case TIM_CHANNEL_3: tim->Instance->CCR3 = (PWM_RESOLUTION*duty) - 1;break;
+		case TIM_CHANNEL_4: tim->Instance->CCR4 = (PWM_RESOLUTION*duty) - 1;break;
+	}
+}
+
+motor_msg_t motor_msg_left = MOTOR_MSG_LEFT_DEFAULT;
+motor_msg_t motor_msg_right = MOTOR_MSG_RIGHT_DEFAULT;
+
+/*-223---+223rpm/min*/
+static void motor_ctrl(motor_msg_t *motor, float speed)
+{
+	float duty;
+	if(motor->wheel_type  == WHEEL_L)
+	{
+		if(speed > 0)//æ­£å‘
+		{
+			HAL_GPIO_WritePin(DIRECTION_L_GPIO_Port, DIRECTION_L_Pin, GPIO_PIN_RESET);//ä½ç”µå¹³æœ‰æ•¿
+			duty = speed / 5000.0f;
+		}
+		else if(speed < 0)
+		{
+			HAL_GPIO_WritePin(DIRECTION_L_GPIO_Port, DIRECTION_L_Pin, GPIO_PIN_SET);
+			duty = -speed / 5000.0f;
+		}
+		else
+		{
+			duty = 0;
+		}
+		PWM_SetDuty(&htim2, motor->ch, duty);	
+	}
+	else if(motor->wheel_type == WHEEL_R)
+	{
+		if(speed > 0)//æ­£å‘
+		{
+			HAL_GPIO_WritePin(DIRECTION_R_GPIO_Port, DIRECTION_R_Pin, GPIO_PIN_RESET);//ä½ç”µå¹³æ­£å¿
+			duty = speed / 5000.0f;
+		}
+		else if(speed < 0)
+		{
+			HAL_GPIO_WritePin(DIRECTION_R_GPIO_Port, DIRECTION_R_Pin, GPIO_PIN_SET);
+			duty = -speed / 5000.0f;
+		}
+		else
+		{
+			duty = 0;
+		}
+		PWM_SetDuty(&htim2, motor->ch, duty);	
+	}
+}
+
+
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+{
+    if(htim->Instance == TIM3)
+    {
+			if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+			{
+				if(motor_msg_left.encoder.dir == DIR_POS)
+				{
+					motor_msg_left.circle_cnt++;
+				}
+				else if(motor_msg_left.encoder.dir == DIR_NEG)
+				{
+					motor_msg_left.circle_cnt--;
+				}else{}
+			}
+			/* å·¦è½®ç”µæœºæ–¹å‘å‚æ•°æ›´æ–°HA */
+			if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
+			{
+				if(motor_msg_left.encoder.dir == DIR_POS)
+				{
+					motor_msg_left.circle_cnt++;
+				}
+				else if(motor_msg_left.encoder.dir == DIR_NEG)
+				{
+					motor_msg_left.circle_cnt--;
+				}else{}
+			}
+    }
+		if(htim->Instance == TIM4)
+		{
+			/* å³è½®ç”µæœºé€Ÿåº¦å‚æ•°æ›´æ–° */
+			if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+			{
+				if(motor_msg_right.encoder.dir == DIR_POS)
+				{
+					motor_msg_right.circle_cnt++;
+				}
+				else if(motor_msg_right.encoder.dir == DIR_NEG)
+				{
+					motor_msg_right.circle_cnt--;
+				}else{}
+			}
+			if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
+			{
+				if(motor_msg_right.encoder.dir == DIR_POS)
+				{
+					motor_msg_right.circle_cnt++;
+				}
+				else if(motor_msg_right.encoder.dir == DIR_NEG)
+				{
+					motor_msg_right.circle_cnt--;
+				}else{}
+			}
+		}
+}
+
+
+
+static void get_imu_data(imu_t *imu)
+{
+	mpu_dmp_get_data(&imu->pitch,&imu->roll,&imu->yaw);
+	MPU_Get_Accelerometer(&imu->accel[0],&imu->accel[1],&imu->accel[2]);
+	MPU_Get_Gyroscope(&imu->gyro[0],&imu->gyro[1],&imu->gyro[2]);
+}
+uint8_t cmd_buf_clear[5] = {0xaa, 0x1a, 0x00, 0x01, 0xff};
+uint8_t cmd_buf_start[5] = {0xaa, 0x1a, 0x00, 0x01, 0xff};
+static void get_motor_msg(wheel_msg_t *wheel_msg, motor_msg_t *motor_msg)
+{
+	/* get motor message */
+	static uint8_t dir_cnt;
+	dir_cnt++;
+	if(dir_cnt == 15)//45ms
+	{
+		dir_cnt = 0;
+		motor_msg->speed_rpm_last = motor_msg->speed_rpm;
+		motor_msg->encoder.encoder[0] = (uint32_t)(__HAL_TIM_GET_COUNTER(&htim3));
+		motor_msg->encoder.encoder_err = motor_msg->encoder.encoder[0] - motor_msg->encoder.encoder[1];
+		motor_msg->encoder.encoder[1] = motor_msg->encoder.encoder[0];
+		if(motor_msg->encoder.encoder_err > 0)
+		{
+			motor_msg->encoder.dir = DIR_POS;
+			motor_msg->speed_rpm = wheel_msg->speed_get;
+		}
+		else if(motor_msg->encoder.encoder_err < 0)
+		{
+			motor_msg->encoder.dir = DIR_NEG;
+			motor_msg->speed_rpm = -wheel_msg->speed_get;
+		}
+		else{motor_msg->encoder.dir = DIR_NULL;}
+	}
+	/* cancel the stall protect */
+	if(wheel_msg->err == 0x07)
+	{
+		if(motor_msg->wheel_type == WHEEL_L)
+		{
+			HAL_UART_Transmit_DMA(&WHEEL_L_HUART, (uint8_t *)cmd_buf_clear, 5);
+			motor_ctrl(motor_msg, 0);
+//			HAL_UART_Transmit_DMA(&WHEEL_L_HUART, (uint8_t *)cmd_buf_start, 5);
+		}
+		if(motor_msg->wheel_type == WHEEL_R)
+		{
+			HAL_UART_Transmit_DMA(&WHEEL_R_HUART, (uint8_t *)cmd_buf_clear, 5);	
+			motor_ctrl(motor_msg, 0);
+//			HAL_UART_Transmit_DMA(&WHEEL_R_HUART, (uint8_t *)cmd_buf_start, 5);	
+		}
+	}
+}
+
+static void get_debug_ctrl_msg(void)
+{
+
+}
+
+static float sgn(float num)
+{
+	if(num>0)return 1;
+	else if(num<0)return -1;
+	else return 0;
+}
+
+float balance_pid_calc(float get_pitch, float set_pitch, int16_t gyro_y)
+{
+	double err_tan;
+	balance_pid.get_pitch = get_pitch;
+	balance_pid.set_pitch = set_pitch;
+	balance_pid.gyro_y = gyro_y;
+	balance_pid.err = balance_pid.set_pitch - balance_pid.get_pitch;
+	VAL_LIMIT(balance_pid.err, -20.0f, 20.0f);
+	err_tan = 0.078539816*balance_pid.err;/* 0.1047æ ¹æ®15Â°ç®—å‡º */
+	/* è®¡ç®—KPè¾“å‡º */
+	balance_pid.p_out = balance_pid.kp * tan(err_tan);
+	/* è®¡ç®—KDè¾“å‡º */
+	balance_pid.d_out = -sgn(balance_pid.gyro_y) * balance_pid.kd * balance_pid.gyro_y * balance_pid.gyro_y;
+	/* è®¡ç®—æ€»è¾“å‡º */
+	balance_pid.out = balance_pid.p_out + balance_pid.d_out; 
+	/* è¾“å‡ºè¡¥å¿ï¼Œæ­¤é¡¹æ ¹æ®ç”µæœºç‰¹æ€§ä¸åŒä¿®æ”¹ */
+	balance_pid.balance_out[WHEEL_L] = balance_pid.out + sgn(balance_pid.out)*balance_pid.cur_comp[WHEEL_L];
+	balance_pid.balance_out[WHEEL_R] = balance_pid.out + sgn(balance_pid.out)*balance_pid.cur_comp[WHEEL_R];
+	/* å¹³è¡¡ç¯ç”µæµè¾“å‡ºé™å¹… */
+	VAL_LIMIT(balance_pid.balance_out[WHEEL_L], -2500.0f, 2500.0f);
+	VAL_LIMIT(balance_pid.balance_out[WHEEL_R], -2500.0f, 2500.0f);
+	return 0;
+}
+
 void start_get_imu_task(void const * argument)
 {
-	uint8_t speed_circle_cnt;
-	led_all_off();
-	MPU_Init();//³õÊ¼»¯MPU6050
-	while(mpu_dmp_init());//innit dmp
+	/* init imu */
+	MPU_Init();
+	while(mpu_dmp_init());	
+	/* init motor control resource */
+	HAL_TIM_PWM_Start_IT(&htim2, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start_IT(&htim2, TIM_CHANNEL_2);
+	HAL_GPIO_WritePin(ENABLE_L_GPIO_Port, ENABLE_L_Pin, GPIO_PIN_RESET);//low level enable
+	HAL_GPIO_WritePin(ENABLE_R_GPIO_Port, ENABLE_R_Pin, GPIO_PIN_RESET);//low level enable
+	/* init motor direction test resource */
+	HAL_TIM_Encoder_Start_IT(&htim3, TIM_CHANNEL_ALL);
+	HAL_TIM_Encoder_Start_IT(&htim4, TIM_CHANNEL_ALL);
+	/* init motor driver uart */
+	uart_init_idle(&WHEEL_L_HUART, wheel_left_uart_rx_buffer, WHEEL_HUART_RX_BUFFER_SIZE);
+	uart_init_idle(&WHEEL_R_HUART, wheel_right_uart_rx_buffer, WHEEL_HUART_RX_BUFFER_SIZE);
+	/* init debug and control uart */
+	uart_init_idle(&DEBUG_CTRL_HUART, debug_ctrl_rx_buffer, DEBUG_CTRL_HUART_RX_SIZE);
+	/* init other resource and parameters */
+	led_all_off();	
+	osDelay(3000);
+	led_blink(LED0, 1, 0);	
+	
 	imu_init_ok_flag = 1;
 	chassis_pid_init();
-	osDelay(3000);
-	led_blink(LED0, 1, 0);
-
   uint32_t get_imu_task_wake_time = osKernelSysTick();
   while(1)
   {
 		imu_time_ms = HAL_GetTick() - imu_time_last;
 		imu_time_last = HAL_GetTick();
-		taskENTER_CRITICAL();
-
-			mpu_dmp_get_data(&imu.pitch,&imu.roll,&imu.yaw);
-			imu.temp=MPU_Get_Temperature();	              //µÃµ½ÎÂ¶ÈÖµ
-			MPU_Get_Accelerometer((short *)&imu.aacx,(short *)&imu.aacy,(short *)&imu.aacz);	//µÃµ½¼ÓËÙ¶È´«¸ĞÆ÷Êı¾İ
-			MPU_Get_Gyroscope((short *)&imu.gyrox,(short *)&imu.aacy,(short *)&imu.aacz);	//µÃµ½ÍÓÂİÒÇÊı¾İ
-		sys_variable.theta = imu.pitch;
-		taskEXIT_CRITICAL();
+		/* get imu data */
+		get_imu_data(&imu);
+		VAL_LIMIT(imu.pitch, -20.0f, 20.0f);
+		/* get motor message, delet cancle the stall protect */
+		get_motor_msg(&wheel_left_msg, &motor_msg_left);
+		get_motor_msg(&wheel_right_msg, &motor_msg_right);
+		/* get debug and control message */
+		get_debug_ctrl_msg();
 		
 		/*balance circle | current circle*/
-		sys_variable.balance_out = sys_variable.deat_balance_out + pid_calc(&pid_balcance, sys_variable.theta, sys_variable.mid_angle);
+		balance_pid_calc(imu.pitch, sys_variable.mid_angle, (0.1f * imu.gyro[1]));
+		balance_pid.balance_out[WHEEL_L] = -balance_pid.balance_out[WHEEL_L];
+		balance_pid.balance_out[WHEEL_R] = balance_pid.balance_out[WHEEL_R];
 		
 		/*speed circle*/
-		speed_circle_cnt++;
-		sys_variable.vl = moto_chassis[WHEEL_L].speed_rpm;
-		sys_variable.vr = moto_chassis[WHEEL_R].speed_rpm;
+		speed.speed_circle_cnt++;
+		sys_variable.vl = motor_msg_left.speed_rpm;
+		sys_variable.vr = -motor_msg_right.speed_rpm;
 		sys_variable.v = (sys_variable.vl + sys_variable.vr)/2.0f;
-		if(speed_circle_cnt == 20)
+		if(speed.speed_circle_cnt == 20)//60ms
 		{
-			speed_circle_cnt= 0 ;
-			sys_variable.speed_out = pid_calc(&pid_move_speed, sys_variable.v, 0);//×îºóÒ»¸ö²ÎÊıÊÇÄ¿±êËÙ¶È£¬ÕâÀïÔİÊ±²»ÓÃ£¬¸ø0		
-		}
+			speed.speed_circle_cnt= 0 ;
+			speed.speed_out = 0;//è¿™é‡Œéœ€è¦ä¸²å£æ§åˆ¶è¾“å…¥	     
+		}		
+		
 		/*direction circle*/
-		sys_variable.turn_out = pid_calc(&pid_turn, 0, 0);
-		
-		sys_variable.totall_out[WHEEL_L] = sys_variable.balance_out + sys_variable.speed_out + sys_variable.turn_out;
-		sys_variable.totall_out[WHEEL_R] = -sys_variable.balance_out - sys_variable.speed_out + sys_variable.turn_out;
-		VAL_LIMIT(sys_variable.totall_out[WHEEL_L], -MAX_WHEEL_RPM, MAX_WHEEL_RPM);
-		VAL_LIMIT(sys_variable.totall_out[WHEEL_R], -MAX_WHEEL_RPM, MAX_WHEEL_RPM);
-		
-		send_chassis_cur((int16_t *)sys_variable.totall_out);
+		if(turn.turn_circle_cnt == 10)//30ms
+		{
+			turn.turn_circle_cnt = 0 ;
+			turn.turn_out = 0;//è¿™é‡Œéœ€è¦ä¸²å£æ§åˆ¶è¾“å…¥	 turn.turn_kp *    
+		}	
+		motor_msg_left.ctrl_give = balance_pid.balance_out[WHEEL_L] + speed.speed_out + turn.turn_out;
+		motor_msg_right.ctrl_give = balance_pid.balance_out[WHEEL_R] + speed.speed_out + turn.turn_out;
+		VAL_LIMIT(motor_msg_left.ctrl_give, -5000.0f, 5000.0f);
+		VAL_LIMIT(motor_msg_right.ctrl_give, -5000.0f, 5000.0f);
+		motor_ctrl(&motor_msg_left, motor_msg_left.ctrl_give);
+		motor_ctrl(&motor_msg_right,motor_msg_right.ctrl_give);
+
+		sprintf(lcd_buf, "pitch: %5.3f  ctrl: %5.3f  \n",  imu.pitch, motor_msg_left.ctrl_give);
+		HAL_UART_Transmit_DMA(&huart1, (uint8_t *)lcd_buf, count_buf((uint8_t *)lcd_buf));	
 		
 		osDelayUntil(&get_imu_task_wake_time, GET_IMU_TASK_PERIOD);
-		
   }
+}
+
+uint16_t count_buf(uint8_t *buf)
+{
+	int16_t i = 0;
+	while(buf[i] != '\0')
+	{
+		i++;
+	}
+	return i;
+}
+
+
+void chassis_pid_init(void)
+{
+	balance_pid.kp = -3000;
+	balance_pid.kd = 0.1;
+	balance_pid.cur_comp[WHEEL_L] = 220;
+	balance_pid.cur_comp[WHEEL_R] = 220;
+	sys_variable.mid_angle = 0.0f;
 }
 
 void led_all_off(void)
@@ -114,19 +390,7 @@ void led_blink(LED led, uint8_t time, uint16_t delay_time)
 	}
 }
 
-void chassis_pid_init(void)
-{
-	sys_variable.balance_kp = 200.0f;
-	sys_variable.balance_kd = 0.0f;
-	sys_variable.deat_balance_out = 0;
-	sys_variable.speed_kp = 0;
-	sys_variable.speed_ki = 0;
-	sys_variable.mid_angle = 0;
- 
-	PID_struct_init(&pid_balcance, POSITION_PID, 8000, 0, sys_variable.balance_kp, 0, sys_variable.balance_kd);
-	PID_struct_init(&pid_move_speed, POSITION_PID, 8000, 500, sys_variable.speed_kp, sys_variable.speed_ki, 0);
-	PID_struct_init(&pid_turn, POSITION_PID, 8000, 0, sys_variable.turn_kp, 0, 0);
-}
+
 
 
 /**********************************************control part*************************************************/
@@ -159,26 +423,9 @@ void start_ctrl_task(void const * argument)
 
 
 
-
-void balance_pid_calc(float angle_pitch, float gyro_pitch)
-{
-	balanc_pid_pd.bias = angle_pitch - balanc_pid_pd.middle;
-	balanc_pid_pd.out = balanc_pid_pd.kp * balanc_pid_pd.bias + balanc_pid_pd.kd * gyro_pitch;
-}
-
-
 /**********************************************key scan part*************************************************/
-uint32_t FirstSector = 0, NbOfSectors = 0;
-uint32_t Address = 0, SECTORError = 0;
-__IO uint32_t data32 = 0 , MemoryProgramStatus = 0;
-/*Variable used for Erase procedure*/
-static FLASH_EraseInitTypeDef EraseInitStruct;
-float kp_flash, kd_flash;
-uint8_t flash_count;
-
 uint8_t key_flag;
 int8_t modify_option;
-//uint8_t songshou = 1;
 void start_key_scan_task(void const * argument)
 {
   uint32_t key_scan_task_wake_time = osKernelSysTick();
@@ -188,21 +435,37 @@ void start_key_scan_task(void const * argument)
 		
 		switch (key_flag)
 		{
-			case WKUP_PRES: modify_option--;if(modify_option < 0)modify_option = 2;break;
-			case KEY1_PRES: modify_option++;if(modify_option > 2)modify_option = 0;break;
+			case WKUP_PRES: modify_option--;if(modify_option < 0)modify_option = 6;break;
+			case KEY1_PRES: modify_option++;if(modify_option > 6)modify_option = 0;break;
 			case KEY2_PRES: 
 			{
 				if(modify_option == 0)
 				{
-					sys_variable.balance_kp += 1.0f;
+					balance_pid.kp += 1.0f;
 				}
 				else if(modify_option == 1)
 				{
-					sys_variable.balance_kd += 1.0f;
+					balance_pid.kd += 0.001f;
 				}
 				else if(modify_option == 2)
 				{
 					sys_variable.mid_angle += 0.1f;
+				}
+				else if(modify_option == 3)
+				{
+				  sys_variable.deat_balance_out += 5;
+				}
+				else if(modify_option == 4)
+				{
+				  pid_move_speed.p += 1.0f;
+				}
+				else if(modify_option == 5)
+				{
+				  pid_move_speed.i += 0.01f;
+				}
+				else if(modify_option == 6)
+				{
+				  sys_variable.set_v_speed += 5;
 				}
 				else{}
 			}break;
@@ -210,43 +473,37 @@ void start_key_scan_task(void const * argument)
 			{
 				if(modify_option == 0)
 				{
-					sys_variable.balance_kp -= 1.0f;
+					balance_pid.kp -= 1.0f;
 				}
 				else if(modify_option == 1)
 				{
-					sys_variable.balance_kd -= 1.0f;
+					balance_pid.kd -= 0.001f;
 				}
 				else if(modify_option == 2)
 				{
 					sys_variable.mid_angle -= 0.1f;
+				}
+				else if(modify_option == 3)
+				{
+				  sys_variable.deat_balance_out -= 5;
+				}
+				else if(modify_option == 4)
+				{
+				  pid_move_speed.p -= 1.0f;
+				}
+				else if(modify_option == 5)
+				{
+				  pid_move_speed.i -= 0.01f;
+				}
+				else if(modify_option == 6)
+				{
+				  sys_variable.set_v_speed -= 5;
 				}
 				else{}
 			}break;
 			default:break;
 		}
 
-		
-//		flash_count ++;
-//		if(flash_count == 50)
-//		{
-//				/*write kp kd into flash*/
-//				/* Unlock the Flash to enable the flash control register access *************/
-//				HAL_FLASH_Unlock();
-//				Address = FLASH_USER_START_ADDR;
-//				HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, Address, (uint32_t)balanc_pid_pd.kp);
-//				HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, Address + 4, (uint32_t)balanc_pid_pd.kd);
-//				/* Lock the Flash to disable the flash control register access (recommended
-//					 to protect the FLASH memory against possible unwanted operation) *********/
-//				HAL_FLASH_Lock();
-//				
-//				/*read kp kd from flash*/
-//				Address = FLASH_USER_START_ADDR;
-//				kp_flash = *(__IO uint32_t *)Address;
-//				kd_flash = *(__IO uint32_t *)Address + 4;		
-//				flash_count = 0;
-//		}
-
-		
 		osDelayUntil(&key_scan_task_wake_time, KEY_SCAN_TASK_PERIOD);
   }
 }
@@ -269,79 +526,15 @@ uint8_t key_scan(uint8_t mode)
  	return 0;
 }
 
-/**
-  * @brief  Gets the sector of a given address
-  * @param  None
-  * @retval The sector of a given address
-  */
-static uint32_t GetSector(uint32_t Address)
-{
-  uint32_t sector = 0;
-
-  if((Address < ADDR_FLASH_SECTOR_1) && (Address >= ADDR_FLASH_SECTOR_0))
-  {
-    sector = FLASH_SECTOR_0;
-  }
-  else if((Address < ADDR_FLASH_SECTOR_2) && (Address >= ADDR_FLASH_SECTOR_1))
-  {
-    sector = FLASH_SECTOR_1;
-  }
-  else if((Address < ADDR_FLASH_SECTOR_3) && (Address >= ADDR_FLASH_SECTOR_2))
-  {
-    sector = FLASH_SECTOR_2;
-  }
-  else if((Address < ADDR_FLASH_SECTOR_4) && (Address >= ADDR_FLASH_SECTOR_3))
-  {
-    sector = FLASH_SECTOR_3;
-  }
-  else if((Address < ADDR_FLASH_SECTOR_5) && (Address >= ADDR_FLASH_SECTOR_4))
-  {
-    sector = FLASH_SECTOR_4;
-  }
-  else if((Address < ADDR_FLASH_SECTOR_6) && (Address >= ADDR_FLASH_SECTOR_5))
-  {
-    sector = FLASH_SECTOR_5;
-  }
-  else if((Address < ADDR_FLASH_SECTOR_7) && (Address >= ADDR_FLASH_SECTOR_6))
-  {
-    sector = FLASH_SECTOR_6;
-  }
-  else /* (Address < FLASH_END_ADDR) && (Address >= ADDR_FLASH_SECTOR_7) */
-  {
-    sector = FLASH_SECTOR_7;
-  }
-  return sector;
-}
-
-/**
-  * @brief  Gets sector Size
-  * @param  None
-  * @retval The size of a given sector
-  */
-static uint32_t GetSectorSize(uint32_t Sector)
-{
-  uint32_t sectorsize = 0x00;
-  if((Sector == FLASH_SECTOR_0) || (Sector == FLASH_SECTOR_1) || (Sector == FLASH_SECTOR_2) || (Sector == FLASH_SECTOR_3))
-  {
-    sectorsize = 16 * 1024;
-  }
-  else if(Sector == FLASH_SECTOR_4)
-  {
-    sectorsize = 64 * 1024;
-  }
-  else
-  {
-    sectorsize = 128 * 1024;
-  }  
-  return sectorsize;
-}
 
 
 /**********************************************lcd scan part*************************************************/
 
 /*to get task  period*/
-uint32_t msg_send_time_ms;
-uint32_t msg_send_time_last;
+uint32_t msg_send_time_ms, msg_send_time_last;
+uint32_t send_cnt;
+uint16_t sen_cnt;
+char usart2_tx_buf[300];
 void start_lcd_scan_task(void const * argument)
 {
 
@@ -351,123 +544,22 @@ void start_lcd_scan_task(void const * argument)
 		msg_send_time_ms = HAL_GetTick() - msg_send_time_last;
 		msg_send_time_last = HAL_GetTick();
 		if(imu_init_ok_flag == 1)
-		{
-//			uart_send_senser();		
-			sprintf(lcd_buf, "pitch: %5.3f  mid: %5.3f  kp: %5.3f  kd: %5.3f  out:%7.3f  \n", sys_variable.theta, sys_variable.mid_angle, sys_variable.balance_kp, sys_variable.balance_kd, sys_variable.totall_out[WHEEL_L]);
-			HAL_UART_Transmit_DMA(&huart1, (uint8_t *)lcd_buf, (COUNTOF(lcd_buf) - 1));
+		{	
+			send_cnt++;
+//			sprintf(lcd_buf, "$ID: %5d pitch: %5.3f  gyro: %5.3f  out:%6d  $$\n", send_cnt, imu.pitch, (float)imu.gyro[1], sys_variable.totall_out[WHEEL_L]);
+//			HAL_UART_Transmit_DMA(&huart1, (uint8_t *)lcd_buf, count_buf((uint8_t *)lcd_buf));
+//			osDelay(5);
+//			sprintf(lcd_buf, "$mid: %5.3f  kp: %5.3f  kd: %5.3f  deat_out: %7.3f  $$\n",sys_variable.mid_angle, balance_pid.kp, balance_pid.kd, sys_variable.deat_balance_out);
+//////			sprintf(lcd_buf, "$ID: %5d   pitch: %5.3f   gyro: %5d   out:%6d   $END\n", send_cnt, imu.pitch, imu.gyro[1], sys_variable.totall_out[WHEEL_L]);
+//////			HAL_UART_Transmit_DMA(&huart1, (uint8_t *)lcd_buf, count_buf((uint8_t *)lcd_buf));
+//////			sprintf(usart2_tx_buf, "$ID: %5d   option %1d   pit: %5.3f   blc_kp: %5.3f   blc_kd: %5.3f   mid: %5.3f   comp_l: %5.3f   comp_r: %5.3f   speed_kp: %5.3f   speed_kd: %5.3f   speed_set: %5.3f   out:%6d  $END\n", send_cnt, modify_option, sys_variable.theta, balance_pid.kp, balance_pid.kd, sys_variable.mid_angle, balance_pid.cur_comp[WHEEL_L], balance_pid.cur_comp[WHEEL_R], pid_move_speed.p, pid_move_speed.d, sys_variable.set_v_speed, sys_variable.totall_out[WHEEL_L]);
+//////			HAL_UART_Transmit_DMA(&huart2, (uint8_t *)usart2_tx_buf, count_buf((uint8_t *)usart2_tx_buf));
+//////			if(send_cnt == 60000)
+//////			{
+//////				send_cnt = 0;
+//////			}
 		}
 
 		osDelayUntil(&lcd_scan_task_wake_time, LCD_SCAN_TASK_PERIOD);
   }
 }
-
-const double eps = 1e-11;
-void float_to_str(char *str,double num)
-{
-	int high;//float_æ•´æ•°éƒ¨åˆ†  
-	double low;//float_å°æ•°éƒ¨åˆ† 
-	char *start=str;
-	int n=0;
-	char ch[20];
-	int i;
-	high=(int)num;
-	low=num-high;
-
-	while(high>0)
-	{
-		ch[n++]='0'+high%10;
-		high=high/10;
-	}
-	
-	for(i=n-1;i>=0;i--)
-	{
-		*str++=ch[i];
-	}
-	
-	num -= (int)num;
-	double tp = 0.1;
-	*str++='.';
-	
-	while(num > eps)
-	{//ç²¾åº¦é™åˆ¶ 
-		num -= tp * (int)(low * 10);
-		tp /= 10;
-		*str++='0'+(int)(low*10);
-		low=low*10.0-(int)(low*10);
-	}
-	*str='\0';
-	str=start;
-}
-
-
-/**********ÎªÁËÄäÃûËÄÖáÉÏÎ»»úµÄĞ­Òé¶¨ÒåµÄ±äÁ¿****************************/
-//cupÎªĞ¡¶ËÄ£Ê½´æ´¢£¬Ò²¾ÍÊÇÔÚ´æ´¢µÄÊ±ºò£¬µÍÎ»±»´æÔÚ0×Ö½Ú£¬¸ßÎ»ÔÚ1×Ö½Ú
-#define BYTE0(dwTemp)       (*(char *)(&dwTemp))	 //È¡³öintĞÍ±äÁ¿µÄµÍ×Ö½Ú
-#define BYTE1(dwTemp)       (*((char *)(&dwTemp) + 1))	 //	È¡´æ´¢ÔÚ´Ë±äÁ¿ÏÂÒ»ÄÚ´æ×Ö½ÚµÄÄÚÈİ£¬¸ß×Ö½Ú
-#define BYTE2(dwTemp)       (*((char *)(&dwTemp) + 2))
-#define BYTE3(dwTemp)       (*((char *)(&dwTemp) + 3))
-
-
-/******************************************
-** ËµÃ÷£º
-	1¡¢ ·¢ËÍ¸øÉÏÎ»»úµÄÊı¾İÖ¡¶¨Òå 
-		@èåÍ·--¹¦ÄÜ×Ö--³¤¶È--Êı¾İ£¨Ò»¸ö»ò¶à¸ö£¬¾ßÌå¿´Ğ­ÒéËµÃ÷£©-Ğ£Ñé
-		@Ç°2¸ö×Ö½ÚÎªÖ¡Í·0xAAAA 
-		@µÚ3¸ö×Ö½ÚÎªÖ¡ID£¬Ò²¾ÍÊÇ¹¦ÄÜ×Ö£¬Ó¦ÉèÖÃÎª0xF1~0xFAÖĞµÄÒ»¸ö 
-		@µÚ4¸ö×Ö½ÚÎª±¨ÎÄÊı¾İ³¤¶È(dlc) 
-		@µÚ5¸ö×Ö½Ú¿ªÊ¼µ½µÚ5+dlc-1¸ö×Ö½ÚÎªÒª´«ÊäµÄÊı¾İÄÚÈİ¶Î£¬Ã¿¸öÊı¾İ³¡Îª¸ß×Ö½ÚÔÚÇ°£¬µØ×Ö½ÚÔÚºó 
-		@µÚ5+dlc¸ö×Ö½ÚÎªCheckSum,ÎªµÚ1¸ö×Ö½Úµ½µÚ5+dlc-1¸ö×Ö½ÚËùÓĞ×Ö½ÚµÄÖµÏà¼Óºó£¬±£Áô½á¹ûµÄµÍ°ËÎ»×÷ÎªCheckSum 
-	2¡¢ Íâ²¿Ö±½Óµ÷ÓÃÕâ¸öº¯Êı¡£
-	3¡¢ ĞèÒªÔÚ´ËÎÄ¼şÖĞÒıÓÃĞèÒª·¢ËÍµÄÆäËûÎÄ¼şÖĞµÄÊı¾İ¡£
-	4¡¢ ·¢ËÍµÄÊı¾İ±ØĞëÊÇ int_16 ĞÍµÄÊı¾İ
-*****************************************/  
-void uart_send_senser(void)
-{
-	unsigned char   data_to_send[23] = {0};
-	unsigned char i = 0;
-	unsigned char cnt = 0;
-	unsigned char sum = 0;
- 
-	int int_set_distance_2 = (int)100;
-	int int_real_distance = (int)200;
-	int int_ASR_output = (int)300;
-	
- 
-	data_to_send[cnt++]=0xAA;	 //Ö¡Í·£ºAAAA
-	data_to_send[cnt++]=0xAA;
-	data_to_send[cnt++]=0x02;	 //¹¦ÄÜ×Ö£ºOXFnÖ»½ÓÊÜÊı¾İ£¬²»ÏÔÊ¾Í¼Ïñ¡£0x0nÏÔÊ¾Êı¾İºÍÍ¼Ïñ
-	data_to_send[cnt++]=0;	     //ĞèÒª·¢ËÍÊı¾İµÄ×Ö½ÚÊı£¬ÔİÊ±¸ø0£¬ºóÃæÔÚ¸³Öµ¡£
- 
-	data_to_send[cnt++] = BYTE1(int_set_distance_2);	//¸ß×Ö½Ú
-	data_to_send[cnt++] = BYTE0(int_set_distance_2);	//µÍ×Ö½Ú
-	data_to_send[cnt++] = BYTE1(int_real_distance);
-	data_to_send[cnt++] = BYTE0(int_real_distance);
-	data_to_send[cnt++] = BYTE1(int_ASR_output);
-	data_to_send[cnt++] = BYTE0(int_ASR_output);
- 
-	data_to_send[cnt++] = 0;
-	data_to_send[cnt++] = 0;
-	data_to_send[cnt++] = 0;
-	data_to_send[cnt++] = 0;
-	data_to_send[cnt++] = 0;
-	data_to_send[cnt++] = 0;
- 
-	data_to_send[cnt++] = 0;
-	data_to_send[cnt++] = 0;
-	data_to_send[cnt++] = 0;
-	data_to_send[cnt++] = 0;
-	data_to_send[cnt++] = 0;
-	data_to_send[cnt++] = 0;
- 
-	data_to_send[3] = cnt-4;//¼ÆËã×ÜÊı¾İµÄ×Ö½ÚÊı¡£
- 
-	for(i=0;i<cnt;i++) //¶ÔÓÚforÓï¾ä£¬µ±²»Ğ´´óÀ¨ºÅµÄÊ±ºò£¬Ö»Ö´ĞĞµ½ÏÂÃæµÚÒ»¸ö·ÖºÅ½áÊø¡£
-	{
-		sum+=data_to_send[i];
-	}
- 
-	data_to_send[cnt++] = sum;	//¼ÆËãĞ£ÑéÎ»
-	HAL_UART_Transmit_DMA(&huart1, (uint8_t *)data_to_send, COUNTOF(data_to_send) - 1);
-}
-
-

@@ -43,7 +43,9 @@ typedef struct
   uint16_t ecd;
   uint16_t last_ecd;
   
-  int16_t  speed_rpm;
+  int16_t  speed_rpm;      //unit:r/min
+  int16_t  speed_rpm_last;
+  int16_t  acc_speed_rad;  //unit:rad/s^2
   int16_t  given_current;
 
   int32_t  round_cnt;

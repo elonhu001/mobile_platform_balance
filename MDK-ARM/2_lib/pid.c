@@ -153,4 +153,6 @@ void PID_struct_init(
 pid_t pid_balcance      = {0};
 pid_t pid_move_speed    = {0};
 pid_t pid_turn          = {0};
+pid_t pid_motor_speed[2]   = {0};
+pid_t pid_motor_acc_speed[2]   = {0};
 

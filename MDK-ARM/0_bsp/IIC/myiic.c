@@ -64,7 +64,7 @@ void IIC_Init(void)
 void IIC_Start(void)
 {
 	SDA_OUT();     //sdaÏßÊä³ö
-	IIC_SDA=1;	  	  
+	IIC_SDA=1;
 	IIC_SCL=1;
 	delay_us(4);
  	IIC_SDA=0;//START:when CLK is high,DATA change form high to low 

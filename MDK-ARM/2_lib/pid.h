@@ -153,4 +153,6 @@ float pid_calc(pid_t *pid, float fdb, float ref);
 extern pid_t pid_balcance     ;
 extern pid_t pid_move_speed   ;
 extern pid_t pid_turn         ;
+extern pid_t pid_motor_speed[2] ;
+extern pid_t pid_motor_acc_speed[2];
 #endif

@@ -1,162 +1,86 @@
-/**
- ***************************************(C) COPYRIGHT 2018 DJI***************************************
- * @file       bsp_uart.c
- * @brief      this file contains rc data receive and processing function
- * @note       
- * @Version    V1.0.0
- * @Date       Jan-30-2018
- ***************************************(C) COPYRIGHT 2018 DJI***************************************
- */
-                                                                                                              
 #include "string.h"
 #include "stdlib.h"
 #include "bsp_uart.h"
 #include "usart.h"
 #include "main.h"
-uint8_t   dbus_buf[DBUS_BUFLEN];
-rc_info_t rc;
+#include "sys_config.h"
 
+/*轮毂电机串口部分*/
+uint8_t wheel_left_uart_rx_buffer[WHEEL_HUART_RX_BUFFER_SIZE];//左轮接收buf
+uint8_t wheel_right_uart_rx_buffer[WHEEL_HUART_RX_BUFFER_SIZE];//右轮接收buf
+wheel_msg_t wheel_left_msg = WHEEL_MSG_DEFAULT;//左轮信息
+wheel_msg_t wheel_right_msg = WHEEL_MSG_DEFAULT;//右轮信息
 
-
-/**
-  * @brief      enable global uart it and do not use DMA transfer done it
-  * @param[in]  huart: uart IRQHandler id
-  * @param[in]  pData: receive buff 
-  * @param[in]  Size:  buff size
-  * @retval     set success or fail
-  */
-static int uart_receive_dma_no_it(UART_HandleTypeDef* huart, uint8_t* pData, uint32_t Size)
+void wheel_message_handle(wheel_msg_t *wheel_msg, uint8_t *rx_buf)
 {
-  uint32_t tmp1 = 0;
-
-  tmp1 = huart->RxState;
-	
-	if (tmp1 == HAL_UART_STATE_READY)
+	if((rx_buf[0] == wheel_msg->start) || (rx_buf[1] == wheel_msg->msg_type) || (rx_buf[16] == wheel_msg->end))
 	{
-		if ((pData == NULL) || (Size == 0))
-		{
-			return HAL_ERROR;
-		}
-
-		huart->pRxBuffPtr = pData;
-		huart->RxXferSize = Size;
-		huart->ErrorCode  = HAL_UART_ERROR_NONE;
-
-		/* Enable the DMA Stream */
-		HAL_DMA_Start(huart->hdmarx, (uint32_t)&huart->Instance->DR, (uint32_t)pData, Size);
-
-		/* 
-		 * Enable the DMA transfer for the receiver request by setting the DMAR bit
-		 * in the UART CR3 register 
-		 */
-		SET_BIT(huart->Instance->CR3, USART_CR3_DMAR);
-
-		return HAL_OK;
-	}
-	else
-	{
-		return HAL_BUSY;
+		wheel_msg->status = rx_buf[2];
+		wheel_msg->speed_get = (rx_buf[3] << 8) | rx_buf[4];
+		wheel_msg->speed_set = (rx_buf[5] << 8) | rx_buf[6];
+		wheel_msg->s_vol = (rx_buf[7] << 8) | rx_buf[8];
+		wheel_msg->s_cur = (rx_buf[9] << 8) | rx_buf[10];
+		wheel_msg->err = rx_buf[11];
+		wheel_msg->dir = rx_buf[12];
 	}
 }
 
-/**
-  * @brief      returns the number of remaining data units in the current DMAy Streamx transfer.
-  * @param[in]  dma_stream: where y can be 1 or 2 to select the DMA and x can be 0
-  *             to 7 to select the DMA Stream.
-  * @retval     The number of remaining data units in the current DMAy Streamx transfer.
-  */
-uint16_t dma_current_data_counter(DMA_Stream_TypeDef *dma_stream)
+/* debug and control part */
+uint8_t debug_ctrl_rx_buffer[DEBUG_CTRL_HUART_RX_SIZE];
+void debug_ctrl_message_handle(debug_ctrl_msg_t *debug_ctrl_msg, uint8_t *rx_buf)
 {
-  /* Return the number of remaining data units for DMAy Streamx */
-  return ((uint16_t)(dma_stream->NDTR));
+
 }
 
 
-
-/**
-  * @brief       handle received rc data
-  * @param[out]  rc:   structure to save handled rc data
-  * @param[in]   buff: the buff which saved raw rc data
-  * @retval 
-  */
-void rc_callback_handler(rc_info_t *rc, uint8_t *buff)
+/*串口空闲中断通用部分*/
+void uart_init_idle(UART_HandleTypeDef* huart, uint8_t* pData, uint32_t Size)
 {
-  rc->ch1 = (buff[0] | buff[1] << 8) & 0x07FF;
-  rc->ch1 -= 1024;
-  rc->ch2 = (buff[1] >> 3 | buff[2] << 5) & 0x07FF;
-  rc->ch2 -= 1024;
-  rc->ch3 = (buff[2] >> 6 | buff[3] << 2 | buff[4] << 10) & 0x07FF;
-  rc->ch3 -= 1024;
-  rc->ch4 = (buff[4] >> 1 | buff[5] << 7) & 0x07FF;
-  rc->ch4 -= 1024;
-
-  rc->sw1 = ((buff[5] >> 4) & 0x000C) >> 2;
-  rc->sw2 = (buff[5] >> 4) & 0x0003;
-  
-  if ((abs(rc->ch1) > 660) || \
-      (abs(rc->ch2) > 660) || \
-      (abs(rc->ch3) > 660) || \
-      (abs(rc->ch4) > 660))
-  {
-    memset(rc, 0, sizeof(rc_info_t));
-  }		
+	__HAL_UART_ENABLE_IT(huart, UART_IT_IDLE);
+	HAL_UART_Receive_DMA(huart, pData, Size);
 }
 
-/**
-  * @brief      clear idle it flag after uart receive a frame data
-  * @param[in]  huart: uart IRQHandler id
-  * @retval  
-  */
-static void uart_rx_idle_callback(UART_HandleTypeDef* huart)
-{
-	/* clear idle it flag avoid idle interrupt all the time */
-	__HAL_UART_CLEAR_IDLEFLAG(huart);
-
-	/* handle received data in idle interrupt */
-	if (huart == &DBUS_HUART)
-	{
-		/* clear DMA transfer complete flag */
-		__HAL_DMA_DISABLE(huart->hdmarx);
-
-		/* handle dbus data dbus_buf from DMA */
-		if ((DBUS_MAX_LEN - dma_current_data_counter(huart->hdmarx->Instance)) == DBUS_BUFLEN)
-		{
-			rc_callback_handler(&rc, dbus_buf);	
-		}
-		
-		/* restart dma transmission */
-		__HAL_DMA_SET_COUNTER(huart->hdmarx, DBUS_MAX_LEN);
-		__HAL_DMA_ENABLE(huart->hdmarx);
-	}
-}
-
-/**
-  * @brief      callback this function when uart interrupt 
-  * @param[in]  huart: uart IRQHandler id
-  * @retval  
-  */
+uint32_t time_left_uart, time_left_uart_last;
+uint32_t time_right_uart, time_right_uart_last;
+uint32_t time_imu_uart, time_imu_uart_last;
 void uart_receive_handler(UART_HandleTypeDef *huart)
-{  
+{
 	if (__HAL_UART_GET_FLAG(huart, UART_FLAG_IDLE) && 
 			__HAL_UART_GET_IT_SOURCE(huart, UART_IT_IDLE))
 	{
-		uart_rx_idle_callback(huart);
+		__HAL_UART_CLEAR_IDLEFLAG(huart);
+		HAL_UART_DMAStop(huart);
+		
+		/* wheel message handle */
+		if(huart == &WHEEL_L_HUART)
+		{
+			time_left_uart = HAL_GetTick() - time_left_uart_last;
+			time_left_uart_last = HAL_GetTick();
+			wheel_message_handle(&wheel_left_msg, wheel_left_uart_rx_buffer);
+			HAL_UART_Receive_DMA(huart, wheel_left_uart_rx_buffer, WHEEL_HUART_RX_BUFFER_SIZE);
+		}
+		else if(huart == &WHEEL_R_HUART)
+		{
+			time_right_uart = HAL_GetTick() - time_right_uart_last;
+			time_right_uart_last = HAL_GetTick();
+			wheel_message_handle(&wheel_right_msg, wheel_right_uart_rx_buffer);
+//			memset(wheel_left_uart_rx_buffer, 0, sizeof(&wheel_left_uart_rx_buffer));
+			HAL_UART_Receive_DMA(huart, wheel_right_uart_rx_buffer, WHEEL_HUART_RX_BUFFER_SIZE);
+		}	
+//		else if(huart == &IMU_HUART)
+//		{
+//			time_imu_uart = HAL_GetTick() - time_imu_uart_last;
+//			time_imu_uart_last = HAL_GetTick();
+
+//		}
+		else{}
 	}
 }
 
-/**
-  * @brief   initialize dbus uart device 
-  * @param   
-  * @retval  
-  */
-void dbus_uart_init(void)
-{
-	/* open uart idle it */
-	__HAL_UART_CLEAR_IDLEFLAG(&DBUS_HUART);
-	__HAL_UART_ENABLE_IT(&DBUS_HUART, UART_IT_IDLE);
 
-	uart_receive_dma_no_it(&DBUS_HUART, dbus_buf, DBUS_MAX_LEN);
-}
+
+
+
 
 
 

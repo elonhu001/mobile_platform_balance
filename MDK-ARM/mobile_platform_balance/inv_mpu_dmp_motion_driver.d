@@ -1,9 +1,9 @@
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: 0_bsp\MPU6050\eMPL\inv_mpu_dmp_motion_driver.c
-mobile_platform_balance\inv_mpu_dmp_motion_driver.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\stdio.h
-mobile_platform_balance\inv_mpu_dmp_motion_driver.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\stdint.h
-mobile_platform_balance\inv_mpu_dmp_motion_driver.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\stdlib.h
-mobile_platform_balance\inv_mpu_dmp_motion_driver.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\string.h
-mobile_platform_balance\inv_mpu_dmp_motion_driver.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\math.h
+mobile_platform_balance\inv_mpu_dmp_motion_driver.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\stdio.h
+mobile_platform_balance\inv_mpu_dmp_motion_driver.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\stdint.h
+mobile_platform_balance\inv_mpu_dmp_motion_driver.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\stdlib.h
+mobile_platform_balance\inv_mpu_dmp_motion_driver.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\string.h
+mobile_platform_balance\inv_mpu_dmp_motion_driver.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\math.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: 0_bsp\MPU6050\eMPL\inv_mpu.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h
@@ -16,7 +16,6 @@ mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Drivers/CMSIS/Device/ST/
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Inc/stm32f4xx_hal_conf.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Inc/main.h
-mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h
@@ -31,8 +30,6 @@ mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Drivers/STM32F4xx_HAL_Dr
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ex.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ramfunc.h
-mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_sram.h
-mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_fsmc.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h
@@ -44,7 +41,7 @@ mobile_platform_balance\inv_mpu_dmp_motion_driver.o: 0_bsp\MPU6050\eMPL\dmpmap.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: .\0_bsp\sys_config.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
-mobile_platform_balance\inv_mpu_dmp_motion_driver.o: C:\1_MySoftware\ARM\ARMCC\Bin\..\include\stddef.h
+mobile_platform_balance\inv_mpu_dmp_motion_driver.o: C:\0_Softwares\0_KEIL\ARM\ARMCC\Bin\..\include\stddef.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Inc/FreeRTOSConfig.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
@@ -62,9 +59,10 @@ mobile_platform_balance\inv_mpu_dmp_motion_driver.o: .\0_bsp\sys_config.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: .\0_bsp\MPU6050\mpu6050.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: .\0_bsp\sys\sys.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: .\1_task\ctrl_task.h
-mobile_platform_balance\inv_mpu_dmp_motion_driver.o: .\0_bsp\can\bsp_can.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: .\0_bsp\uart\bsp_uart.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Inc/usart.h
+mobile_platform_balance\inv_mpu_dmp_motion_driver.o: ../Inc/tim.h
+mobile_platform_balance\inv_mpu_dmp_motion_driver.o: .\0_bsp\can\bsp_can.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: .\2_lib\pid.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: .\0_bsp\ramp\ramp.h
 mobile_platform_balance\inv_mpu_dmp_motion_driver.o: .\0_bsp\lcd\ili93xx.h

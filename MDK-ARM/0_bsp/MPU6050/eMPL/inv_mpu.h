@@ -27,7 +27,7 @@ typedef uint16_t u16;
 typedef uint32_t u32;
 
 //定义输出速度
-#define DEFAULT_MPU_HZ  (100)		//100Hz
+#define DEFAULT_MPU_HZ  (200)		//100Hz
 
 #define INV_X_GYRO      (0x40)
 #define INV_Y_GYRO      (0x20)
@@ -138,6 +138,6 @@ unsigned short inv_orientation_matrix_to_scalar(const signed char *mtx);
 u8 run_self_test(void);
 u8 mpu_dmp_init(void);
 u8 mpu_dmp_get_data(float *pitch,float *roll,float *yaw);
-
+//u8 mpu_dmp_get_data(float *pitch,float *roll,float *yaw, int16_t *gyro, int16_t *accel);
 #endif  /* #ifndef _INV_MPU_H_ */
 
