@@ -72,7 +72,13 @@ static void PWM_SetDuty(TIM_HandleTypeDef *tim,uint32_t tim_channel,float duty)
 
 motor_msg_t motor_msg_left = MOTOR_MSG_LEFT_DEFAULT;
 motor_msg_t motor_msg_right = MOTOR_MSG_RIGHT_DEFAULT;
-
+static int32_t my_abs(int32_t val)
+{
+	if(val>0)val=val;
+	else if(val<0)val=-val;
+	else val=0;
+	return val;
+}
 /*-223---+223rpm/min*/
 static void motor_ctrl(motor_msg_t *motor, float speed)
 {
@@ -82,36 +88,38 @@ static void motor_ctrl(motor_msg_t *motor, float speed)
 		if(speed > 0)//正向
 		{
 			HAL_GPIO_WritePin(DIRECTION_L_GPIO_Port, DIRECTION_L_Pin, GPIO_PIN_RESET);//低电平有敿
-			duty = speed / 5000.0f;
+			duty = speed / 4096.0f;
 		}
 		else if(speed < 0)
 		{
 			HAL_GPIO_WritePin(DIRECTION_L_GPIO_Port, DIRECTION_L_Pin, GPIO_PIN_SET);
-			duty = -speed / 5000.0f;
+			duty = -speed / 4096.0f;
 		}
 		else
 		{
 			duty = 0;
 		}
-		PWM_SetDuty(&htim2, motor->ch, duty);	
+		PWM_SetDuty(&htim9, motor->ch, duty);	
+		HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, (uint32_t)my_abs((int32_t)speed));
 	}
 	else if(motor->wheel_type == WHEEL_R)
 	{
 		if(speed > 0)//正向
 		{
 			HAL_GPIO_WritePin(DIRECTION_R_GPIO_Port, DIRECTION_R_Pin, GPIO_PIN_RESET);//低电平正吿
-			duty = speed / 5000.0f;
+			duty = speed / 4096.0f;
 		}
 		else if(speed < 0)
 		{
 			HAL_GPIO_WritePin(DIRECTION_R_GPIO_Port, DIRECTION_R_Pin, GPIO_PIN_SET);
-			duty = -speed / 5000.0f;
+			duty = -speed / 4096.0f;
 		}
 		else
 		{
 			duty = 0;
 		}
-		PWM_SetDuty(&htim2, motor->ch, duty);	
+		PWM_SetDuty(&htim9, motor->ch, duty);	
+		HAL_DAC_SetValue(&hdac, DAC_CHANNEL_2, DAC_ALIGN_12B_R, (uint32_t)my_abs((int32_t)speed));
 	}
 }
 
@@ -181,7 +189,8 @@ static void get_imu_data(imu_t *imu)
 	MPU_Get_Gyroscope(&imu->gyro[0],&imu->gyro[1],&imu->gyro[2]);
 }
 uint8_t cmd_buf_clear[5] = {0xaa, 0x1a, 0x00, 0x01, 0xff};
-uint8_t cmd_buf_start[5] = {0xaa, 0x1a, 0x00, 0x01, 0xff};
+uint8_t cmd_buf_speed_com[5] = {0xaa, 0x02, 0x00, 0x01, 0xff};//端口控制
+uint8_t cmd_buf_speed_pc[5] = {0xaa, 0x02, 0x00, 0x02, 0xff};//上位机控制
 static void get_motor_msg(wheel_msg_t *wheel_msg, motor_msg_t *motor_msg)
 {
 	/* get motor message */
@@ -212,14 +221,49 @@ static void get_motor_msg(wheel_msg_t *wheel_msg, motor_msg_t *motor_msg)
 		if(motor_msg->wheel_type == WHEEL_L)
 		{
 			HAL_UART_Transmit_DMA(&WHEEL_L_HUART, (uint8_t *)cmd_buf_clear, 5);
-			motor_ctrl(motor_msg, 0);
-//			HAL_UART_Transmit_DMA(&WHEEL_L_HUART, (uint8_t *)cmd_buf_start, 5);
+			HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 0);
+			motor_msg->err_clear_flag = 1;
+			osDelay(5);
+//			motor_ctrl(motor_msg, 0);
+//			osDelay(1);
+//			HAL_GPIO_WritePin(ENABLE_L_GPIO_Port, ENABLE_L_Pin, GPIO_PIN_SET);
+//			osDelay(2);
+//			HAL_GPIO_WritePin(ENABLE_L_GPIO_Port, ENABLE_L_Pin, GPIO_PIN_RESET);//low level enable
+//			HAL_UART_Transmit_DMA(&WHEEL_L_HUART, (uint8_t *)cmd_buf_speed_pc, 5);//上位机
+//			osDelay(2);
+//			HAL_UART_Transmit_DMA(&WHEEL_L_HUART, (uint8_t *)cmd_buf_speed_com, 5);//端口
 		}
 		if(motor_msg->wheel_type == WHEEL_R)
 		{
 			HAL_UART_Transmit_DMA(&WHEEL_R_HUART, (uint8_t *)cmd_buf_clear, 5);	
-			motor_ctrl(motor_msg, 0);
-//			HAL_UART_Transmit_DMA(&WHEEL_R_HUART, (uint8_t *)cmd_buf_start, 5);	
+			HAL_DAC_SetValue(&hdac, DAC_CHANNEL_2, DAC_ALIGN_12B_R, 0);
+			motor_msg->err_clear_flag = 1;
+			osDelay(5);
+//			motor_ctrl(motor_msg, 0);
+//			osDelay(1);
+//			HAL_GPIO_WritePin(ENABLE_R_GPIO_Port, ENABLE_R_Pin, GPIO_PIN_SET);
+//			osDelay(2);
+//			HAL_GPIO_WritePin(ENABLE_R_GPIO_Port, ENABLE_R_Pin, GPIO_PIN_RESET);//low level enable
+//			HAL_UART_Transmit_DMA(&WHEEL_R_HUART, (uint8_t *)cmd_buf_speed_pc, 5);	
+//			osDelay(2);
+//			HAL_UART_Transmit_DMA(&WHEEL_R_HUART, (uint8_t *)cmd_buf_speed_com, 5);	
+		}
+	}
+}
+
+static void err_clear(motor_msg_t *motor_msg)
+{
+	if(motor_msg->err_clear_flag == 1)
+	{
+		motor_msg->err_clear_cnt++;	
+		HAL_TIM_PWM_Stop_IT(&htim9, motor_msg->ch);		
+		HAL_DAC_SetValue(&hdac, DAC_CHANNEL_2, DAC_ALIGN_12B_R, 0);
+		if(motor_msg->err_clear_cnt == 100)//300ms
+		{
+			motor_msg->err_clear_cnt = 0;
+			motor_msg->err_clear_flag = 0;
+			HAL_TIM_PWM_Start_IT(&htim9, motor_msg->ch);
+			HAL_DAC_SetValue(&hdac, DAC_CHANNEL_2, DAC_ALIGN_12B_R, 0);
 		}
 	}
 }
@@ -266,8 +310,10 @@ void start_get_imu_task(void const * argument)
 	MPU_Init();
 	while(mpu_dmp_init());	
 	/* init motor control resource */
-	HAL_TIM_PWM_Start_IT(&htim2, TIM_CHANNEL_1);
-	HAL_TIM_PWM_Start_IT(&htim2, TIM_CHANNEL_2);
+	HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
+	HAL_DAC_Start(&hdac, DAC_CHANNEL_2);
+	HAL_TIM_PWM_Start_IT(&htim9, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start_IT(&htim9, TIM_CHANNEL_2);
 	HAL_GPIO_WritePin(ENABLE_L_GPIO_Port, ENABLE_L_Pin, GPIO_PIN_RESET);//low level enable
 	HAL_GPIO_WritePin(ENABLE_R_GPIO_Port, ENABLE_R_Pin, GPIO_PIN_RESET);//low level enable
 	/* init motor direction test resource */
@@ -323,8 +369,12 @@ void start_get_imu_task(void const * argument)
 		}	
 		motor_msg_left.ctrl_give = balance_pid.balance_out[WHEEL_L] + speed.speed_out + turn.turn_out;
 		motor_msg_right.ctrl_give = balance_pid.balance_out[WHEEL_R] + speed.speed_out + turn.turn_out;
+		
+//		err_clear(&motor_msg_left);
+//		err_clear(&motor_msg_right);		
 		VAL_LIMIT(motor_msg_left.ctrl_give, -5000.0f, 5000.0f);
 		VAL_LIMIT(motor_msg_right.ctrl_give, -5000.0f, 5000.0f);
+	
 		motor_ctrl(&motor_msg_left, motor_msg_left.ctrl_give);
 		motor_ctrl(&motor_msg_right,motor_msg_right.ctrl_give);
 

@@ -5,8 +5,8 @@
 #include "sys_config.h"
 
 /**************************************wheel uart*******************************************/
-#define WHEEL_L_HUART huart3
-#define WHEEL_R_HUART huart6
+#define WHEEL_L_HUART huart2
+#define WHEEL_R_HUART huart3
 #define WHEEL_HUART_RX_BUFFER_SIZE (20)
 #define WHEEL_MSG_DEFAULT {0xbb, 0x81, 0, 0, 0, 0, 0, 0, 0, 0xEE}
 

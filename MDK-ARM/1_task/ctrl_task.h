@@ -45,6 +45,8 @@ typedef struct
 	int32_t  circle;
 	motor_ecoder_t encoder;
 	float ctrl_give;
+	uint8_t err_clear_flag;
+	uint8_t err_clear_cnt;
 }motor_msg_t;
 #define MOTOR_MSG_LEFT_DEFAULT {TIM_CHANNEL_1, WHEEL_L, 0, 0, 0, 0, {0}}
 #define MOTOR_MSG_RIGHT_DEFAULT {TIM_CHANNEL_2, WHEEL_R, 0, 0, 0, 0, {0}}

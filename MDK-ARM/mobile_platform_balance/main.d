@@ -23,6 +23,8 @@ mobile_platform_balance\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ha
 mobile_platform_balance\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma_ex.h
 mobile_platform_balance\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_cortex.h
 mobile_platform_balance\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_can.h
+mobile_platform_balance\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dac.h
+mobile_platform_balance\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dac_ex.h
 mobile_platform_balance\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash.h
 mobile_platform_balance\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ex.h
 mobile_platform_balance\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ramfunc.h
@@ -47,6 +49,7 @@ mobile_platform_balance\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/inclu
 mobile_platform_balance\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h
 mobile_platform_balance\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h
 mobile_platform_balance\main.o: ../Inc/can.h
+mobile_platform_balance\main.o: ../Inc/dac.h
 mobile_platform_balance\main.o: ../Inc/dma.h
 mobile_platform_balance\main.o: ../Inc/tim.h
 mobile_platform_balance\main.o: ../Inc/usart.h

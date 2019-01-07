@@ -23,6 +23,8 @@ mobile_platform_balance\stm32f4xx_it.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm3
 mobile_platform_balance\stm32f4xx_it.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma_ex.h
 mobile_platform_balance\stm32f4xx_it.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_cortex.h
 mobile_platform_balance\stm32f4xx_it.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_can.h
+mobile_platform_balance\stm32f4xx_it.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dac.h
+mobile_platform_balance\stm32f4xx_it.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dac_ex.h
 mobile_platform_balance\stm32f4xx_it.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash.h
 mobile_platform_balance\stm32f4xx_it.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ex.h
 mobile_platform_balance\stm32f4xx_it.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ramfunc.h
@@ -64,6 +66,7 @@ mobile_platform_balance\stm32f4xx_it.o: .\1_task\ctrl_task.h
 mobile_platform_balance\stm32f4xx_it.o: .\0_bsp\uart\bsp_uart.h
 mobile_platform_balance\stm32f4xx_it.o: ../Inc/usart.h
 mobile_platform_balance\stm32f4xx_it.o: ../Inc/tim.h
+mobile_platform_balance\stm32f4xx_it.o: ../Inc/dac.h
 mobile_platform_balance\stm32f4xx_it.o: .\0_bsp\can\bsp_can.h
 mobile_platform_balance\stm32f4xx_it.o: .\2_lib\pid.h
 mobile_platform_balance\stm32f4xx_it.o: .\0_bsp\ramp\ramp.h

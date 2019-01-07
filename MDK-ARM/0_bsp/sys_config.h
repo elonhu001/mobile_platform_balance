@@ -20,6 +20,7 @@
 #include "ctrl_task.h"
 /*bsp*/
 #include "tim.h"
+#include "dac.h"
 #include "bsp_can.h"
 #include "bsp_uart.h"
 /*lib*/
