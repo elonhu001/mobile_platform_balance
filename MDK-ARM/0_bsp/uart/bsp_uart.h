@@ -38,7 +38,10 @@ typedef struct
 	float set_speed;
 	float set_rotat;
 }debug_ctrl_msg_t;
+extern debug_ctrl_msg_t debug_ctrl_msg;
 extern uint8_t debug_ctrl_rx_buffer[DEBUG_CTRL_HUART_RX_SIZE];
+
+
 
 void debug_ctrl_message_handle(debug_ctrl_msg_t *debug_ctrl_msg, uint8_t *rx_buf);
 /******************************************************************************************************/

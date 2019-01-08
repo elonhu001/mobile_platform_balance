@@ -26,6 +26,7 @@ void wheel_message_handle(wheel_msg_t *wheel_msg, uint8_t *rx_buf)
 }
 
 /* debug and control part */
+debug_ctrl_msg_t debug_ctrl_msg;
 uint8_t debug_ctrl_rx_buffer[DEBUG_CTRL_HUART_RX_SIZE];
 void debug_ctrl_message_handle(debug_ctrl_msg_t *debug_ctrl_msg, uint8_t *rx_buf)
 {
@@ -67,12 +68,12 @@ void uart_receive_handler(UART_HandleTypeDef *huart)
 //			memset(wheel_left_uart_rx_buffer, 0, sizeof(&wheel_left_uart_rx_buffer));
 			HAL_UART_Receive_DMA(huart, wheel_right_uart_rx_buffer, WHEEL_HUART_RX_BUFFER_SIZE);
 		}	
-//		else if(huart == &IMU_HUART)
-//		{
-//			time_imu_uart = HAL_GetTick() - time_imu_uart_last;
-//			time_imu_uart_last = HAL_GetTick();
-
-//		}
+		else if(huart == &DEBUG_CTRL_HUART)
+		{
+			time_imu_uart = HAL_GetTick() - time_imu_uart_last;
+			time_imu_uart_last = HAL_GetTick();
+			debug_ctrl_message_handle(&debug_ctrl_msg, debug_ctrl_rx_buffer);
+		}
 		else{}
 	}
 }
